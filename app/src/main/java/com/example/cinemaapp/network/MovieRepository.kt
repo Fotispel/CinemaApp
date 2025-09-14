@@ -14,7 +14,7 @@ class MovieRepository {
 
         return elements.map { element ->
             val title = element.selectFirst("figcaption a")?.text()?.trim() ?: "Unknown"
-            val posterUrl = element.selectFirst("img.item__img")?.attr("src") ?: ""
+            val posterUrl = "https://cinelandpantelis.gr/" + element.selectFirst("img.item__img")?.attr("src") ?: ""
             val premiereText = element.selectFirst("span.see-more")?.ownText()?.trim()
                 ?.replace("Πρεμιέρα:", "") ?: ""
 
