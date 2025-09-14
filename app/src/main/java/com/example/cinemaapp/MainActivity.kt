@@ -82,7 +82,10 @@ class MainActivity : ComponentActivity() {
                                 modifier = Modifier.padding(innerPadding),
                                 viewModel = movieViewModel
                             )
-                            1 -> ComingSoonScreen(Modifier.padding(innerPadding))
+                            1 -> ComingSoonScreen(
+                                modifier = Modifier.padding(innerPadding),
+                                viewModel = movieViewModel
+                            )
                         }
                     }
                 }
