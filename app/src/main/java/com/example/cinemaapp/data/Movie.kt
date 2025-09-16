@@ -8,7 +8,7 @@ data class MovieBasicInfo(
     val MovieURL: String = ""
 )
 
-data class NowPlayingMovieInfo(
+data class FullMovieInfo(
     val title: String = "",
     val posterUrl: String = "",
     val duration: String = "",
@@ -19,25 +19,11 @@ data class NowPlayingMovieInfo(
     val director: String = "",
     val cast: List<String> = emptyList(),
     val trailerUrl: String = "",
-    val showtime: List<String> = emptyList()
-    )
-
-data class ComingSoonMovieInfo(
-    val title: String = "",
-    val posterUrl: String = "",
-    val duration: String = "",
-    val genre: String = "",
-    val ageRating: String = "",
-    val projectionRoom: String = "",
-    val description: String = "",
-    val director: String = "",
-    val cast: List<String> = emptyList(),
-    val trailerUrl: String = "",
+    val showtime: List<String> = emptyList(),
     val premiereDate: String = ""
-    )
+)
 
 data class Movie(
     val basicInfo: MovieBasicInfo,
-    val nowPlayingInfo: NowPlayingMovieInfo? = null,
-    val comingSoonInfo: ComingSoonMovieInfo? = null
+    val fullInfo: FullMovieInfo? = null
 )

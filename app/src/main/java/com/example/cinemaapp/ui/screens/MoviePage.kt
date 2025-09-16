@@ -1,22 +1,16 @@
 package com.example.cinemaapp.ui.screens
 
 import android.content.Intent
-import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -27,14 +21,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import com.example.cinemaapp.data.Movie
 import com.example.cinemaapp.viewmodel.MovieViewModel
 import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieViewModel) {
-    // Λίστα ταινιών που κρατάει το ViewModel
     val movies by viewModel.movies.collectAsState()
 
     val movie = movies.find { it.basicInfo.MovieURL == movieUrl }
@@ -113,7 +105,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                             .fillMaxWidth(),
                         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                     ) {
-                        val age_number = movie?.nowPlayingInfo?.ageRating?.filter { it.isDigit() }
+                        val age_number = movie?.fullInfo?.ageRating?.filter { it.isDigit() }
                         val age_text = if (!age_number.isNullOrEmpty()) "Κ$age_number" else "Κ"
                         Box(
                             contentAlignment = Alignment.Center,
@@ -135,7 +127,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                     ) {
                         val duration =
-                            movie?.nowPlayingInfo?.duration ?: movie?.comingSoonInfo?.duration
+                            movie?.fullInfo?.duration
                             ?: "--"
                         Box(
                             contentAlignment = Alignment.Center,
@@ -156,7 +148,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                             .fillMaxWidth(),
                         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                     ) {
-                        val room = movie?.nowPlayingInfo?.projectionRoom ?: "--"
+                        val room = movie?.fullInfo?.projectionRoom ?: "--"
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier.fillMaxSize()
@@ -180,7 +172,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
             ) {
                 Button(
                     onClick = {
-                        val trailerUrl = movie?.nowPlayingInfo?.trailerUrl ?: ""
+                        val trailerUrl = movie?.fullInfo?.trailerUrl ?: ""
                         Log.d("MoviePage", "Trailer URL: $trailerUrl")
                         if (trailerUrl.isNotEmpty()) {
                             val intent = Intent(Intent.ACTION_VIEW, trailerUrl.toUri())
@@ -213,7 +205,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
             Spacer(modifier = Modifier.height(16.dp))
 
             // Movie Details
-            val info = movie?.nowPlayingInfo
+            val info = movie?.fullInfo
 
 
             Column(
@@ -229,12 +221,12 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                             modifier = Modifier.padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            if (!info.description.isNullOrEmpty())
+                            if (info.description.isNotEmpty())
                                 Text(
                                     text = (info.description + "\n"),
                                     style = MaterialTheme.typography.bodyLarge
                                 )
-                            if (!info.genre.isNullOrEmpty())
+                            if (info.genre.isNotEmpty())
                                 Text(
                                     text = "Είδος: ${info.genre}",
                                     style = MaterialTheme.typography.bodyLarge
@@ -242,26 +234,25 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                         }
                     }
                 }
-                if (!info?.director.isNullOrEmpty() || !info?.cast.isNullOrEmpty()) {
+
+                if (!info?.premiereDate.isNullOrEmpty()) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
                         Column(
                             modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Text(
-                                text = "Σκηνοθέτης: ${info?.director}",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                            Text(
-                                text = "Ηθοποιοί: ${info?.cast?.joinToString(", ")}",
+                                text = "Πρεμιέρα: ${info.premiereDate}",
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
                     }
                 }
+                Log.d("MoviePage", "Premiere Date: ${info?.premiereDate}")
+
                 if (!info?.showtime.isNullOrEmpty()) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -269,13 +260,13 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                     ) {
                         Column(
                             modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp) // λίγο κενό ανάμεσα στα Text
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Text(
                                 text = "Ώρες προβολής:",
                                 style = MaterialTheme.typography.bodyLarge
                             )
-                            info?.showtime?.forEach { time ->
+                            info.showtime.forEach { time ->
                                 Text(
                                     text = time,
                                     style = MaterialTheme.typography.bodyMedium
@@ -301,7 +292,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                                 )
                             if (info.cast.isNotEmpty())
                                 Text(
-                                    text = "Ηθοποιοί: ${info.cast?.joinToString(", ")}",
+                                    text = "Ηθοποιοί: ${info.cast.joinToString(", ")}",
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                         }

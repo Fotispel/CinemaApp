@@ -3,8 +3,7 @@ package com.example.cinemaapp.network
 import android.util.Log
 import com.example.cinemaapp.data.Movie
 import com.example.cinemaapp.data.MovieBasicInfo
-import com.example.cinemaapp.data.ComingSoonMovieInfo
-import com.example.cinemaapp.data.NowPlayingMovieInfo
+import com.example.cinemaapp.data.FullMovieInfo
 import org.jsoup.Jsoup
 
 class MovieRepository {
@@ -58,6 +57,9 @@ class MovieRepository {
             val duration = info["Διάρκεια"] ?: ""
             val genre = info["Είδος ταινίας"] ?: ""
 
+            val releaseDateElement = doc.select("div.release_date span").last()
+            val premiereDate = releaseDateElement?.text()?.trim()
+
             val description = doc.selectFirst("div.ce_text.block p[style]")?.text()?.trim() ?: ""
             val trailerUrl = doc.selectFirst("div.ce_youtube iframe")?.attr("src") ?: ""
 
@@ -77,8 +79,8 @@ class MovieRepository {
             Log.d("MovieRepository", "Description: $description")
             Movie(
                 basicInfo = MovieBasicInfo(title, posterUrl, movieUrl),
-                nowPlayingInfo = if (description.isNotEmpty() || director.isNotEmpty()) {
-                    NowPlayingMovieInfo(
+                fullInfo = if (description.isNotEmpty() || director.isNotEmpty()) {
+                    FullMovieInfo(
                         title = title,
                         posterUrl = posterUrl,
                         duration = duration,
@@ -89,8 +91,10 @@ class MovieRepository {
                         director = director,
                         cast = castList,
                         showtime = showtime,
-                        trailerUrl = trailerUrl
+                        trailerUrl = trailerUrl,
+                        premiereDate = premiereDate ?: ""
                     )
+
                 } else null
             )
 
