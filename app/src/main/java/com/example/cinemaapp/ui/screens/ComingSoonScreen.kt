@@ -1,79 +1,80 @@
 package com.example.cinemaapp.ui.screens
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import coil.compose.rememberAsyncImagePainter
-import com.example.cinemaapp.data.MovieBasicInfo
 import com.example.cinemaapp.viewmodel.MovieViewModel
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.navigation.NavController
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import com.example.cinemaapp.ui.MovieQuickViewItem
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ComingSoonScreen(viewModel: MovieViewModel, modifier: Modifier = Modifier) {
-    androidx.compose.runtime.LaunchedEffect(Unit) {
-        viewModel.fetchMovies("https://cinelandpantelis.gr/prosechos.html")
-    }
-
+fun ComingSoonScreen(
+    viewModel: MovieViewModel,
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
     val movies = viewModel.movies.collectAsState().value
 
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
-        contentPadding = PaddingValues(8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = modifier
-    ) {
-        items(movies) { movie ->
-            MovieQuickViewItem(movie.basicInfo)
-        }
+    val pullToRefreshState = rememberPullToRefreshState()
+
+    LaunchedEffect(Unit) {
+        pullToRefreshState.startRefresh()
+        viewModel.fetchMovies("https://cinelandpantelis.gr/prosechos.html")
+        pullToRefreshState.endRefresh()
     }
-}
 
-@Composable
-fun MovieQuickViewItem(basicInfo: MovieBasicInfo) {
-    Column(
-        modifier = Modifier.padding(4.dp),
-        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
-    ) {
-        Box(
+    Box(modifier = modifier.fillMaxSize()) {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3),
+            contentPadding = PaddingValues(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
-                .clip(RoundedCornerShape(12.dp))
+                .nestedScroll(pullToRefreshState.nestedScrollConnection)
+                .fillMaxSize()
         ) {
-            Image(
-                painter = rememberAsyncImagePainter(model = basicInfo.posterUrl),
-                contentDescription = basicInfo.title,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(0.68f)
-            )
 
-            // glossy effect
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(Color.White.copy(alpha = 0.1f))
-            )
+            items(movies) { movie ->
+                MovieQuickViewItem(
+                    basicInfo = movie.basicInfo,
+                    navController = navController, // μπορεί να αφαιρεθεί αν δεν χρειάζεται
+                    onClick = { clickedMovie ->
+                        val encodedUrl = Uri.encode(clickedMovie.MovieURL)
+                        navController.navigate("movie_page/$encodedUrl")
+                    }
+                )
+            }
+
+
         }
 
-        Text(text = basicInfo.title)
+        PullToRefreshContainer(
+            state = pullToRefreshState,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
+
+        if (pullToRefreshState.isRefreshing) {
+            LaunchedEffect(true) {
+                viewModel.fetchMovies("https://cinelandpantelis.gr/prosechos.html")
+                pullToRefreshState.endRefresh()
+            }
+        }
     }
 }

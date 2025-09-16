@@ -40,6 +40,7 @@ android {
 }
 
 dependencies {
+    implementation("com.google.accompanist:accompanist-navigation-animation:0.36.0")
     implementation("androidx.navigation:navigation-compose:2.9.4")
     implementation("io.coil-kt:coil-compose:2.4.0")
     implementation("org.jsoup:jsoup:1.17.2")
@@ -56,6 +57,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.compose.animation.core)
+    implementation(libs.androidx.compose.ui)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

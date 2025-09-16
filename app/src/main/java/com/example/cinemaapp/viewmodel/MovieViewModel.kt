@@ -22,4 +22,18 @@ class MovieViewModel : ViewModel() {
             _movies.value = movieList
         }
     }
+
+    fun fetchDetailedMovieInfo(movieUrl: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val detailedMovie = repository.fetchDetailedMovieInfo(movieUrl)
+            if (detailedMovie != null) {
+                val currentMovies = _movies.value.toMutableList()
+                val index = currentMovies.indexOfFirst { it.basicInfo.title == detailedMovie.basicInfo.title }
+                if (index != -1) {
+                    currentMovies[index] = detailedMovie
+                    _movies.value = currentMovies
+                }
+            }
+        }
+    }
 }
