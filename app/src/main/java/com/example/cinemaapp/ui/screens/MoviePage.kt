@@ -1,5 +1,7 @@
 package com.example.cinemaapp.ui.screens
 
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -18,12 +20,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.cinemaapp.data.Movie
 import com.example.cinemaapp.viewmodel.MovieViewModel
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,10 +37,8 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
     // Λίστα ταινιών που κρατάει το ViewModel
     val movies by viewModel.movies.collectAsState()
 
-    // Προσπάθησε να βρεις την ταινία με βάση το URL
     val movie = movies.find { it.basicInfo.MovieURL == movieUrl }
 
-    // Αν δεν υπάρχει ακόμα, ζήτα την ανάκτηση από το ViewModel
     LaunchedEffect(movieUrl) {
         viewModel.fetchDetailedMovieInfo(movieUrl)
     }
@@ -52,158 +56,259 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Movie Poster
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(400.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+
+            // Movie Title
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineLarge,
+                modifier = Modifier.fillMaxWidth(),
+                fontSize = 21.dp.value.sp
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Row(
+                verticalAlignment = Alignment.Top,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                if (movie != null && movie.basicInfo.posterUrl.isNotEmpty()) {
-                    Image(
-                        painter = rememberAsyncImagePainter(model = movie.basicInfo.posterUrl),
-                        contentDescription = movie.basicInfo.title,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Poster της ταινίας",
-                            style = MaterialTheme.typography.headlineMedium
+                val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+                val posterWidth = screenWidth / 2
+                val posterHeight = posterWidth * 3 / 2
+
+                // Poster
+                Card(
+                    modifier = Modifier
+                        .width(posterWidth)
+                        .height(posterHeight),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                ) {
+                    if (movie != null && movie.basicInfo.posterUrl.isNotEmpty()) {
+                        Image(
+                            painter = rememberAsyncImagePainter(model = movie.basicInfo.posterUrl),
+                            contentDescription = movie.basicInfo.title,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
                         )
+                    } else {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("Poster της ταινίας")
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                // Age, Duration & Room Cards
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.height(posterHeight)
+                ) {
+                    // Age
+                    Card(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                    ) {
+                        val age_number = movie?.nowPlayingInfo?.ageRating?.filter { it.isDigit() }
+                        val age_text = if (!age_number.isNullOrEmpty()) "Κ$age_number" else "Κ"
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Text(
+                                text = age_text,
+                                style = MaterialTheme.typography.headlineMedium,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+
+                    // Duration
+                    Card(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                    ) {
+                        val duration =
+                            movie?.nowPlayingInfo?.duration ?: movie?.comingSoonInfo?.duration
+                            ?: "--"
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Text(
+                                text = duration,
+                                style = MaterialTheme.typography.headlineMedium,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+
+                    // Room
+                    Card(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                    ) {
+                        val room = movie?.nowPlayingInfo?.projectionRoom ?: "--"
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Text(
+                                text = room,
+                                style = MaterialTheme.typography.headlineMedium,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Movie Title
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineLarge,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Movie Details
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            val context = LocalContext.current
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
+                Button(
+                    onClick = {
+                        val trailerUrl = movie?.nowPlayingInfo?.trailerUrl ?: ""
+                        Log.d("MoviePage", "Trailer URL: $trailerUrl")
+                        if (trailerUrl.isNotEmpty()) {
+                            val intent = Intent(Intent.ACTION_VIEW, trailerUrl.toUri())
+                            context.startActivity(intent)
+                        }
+                    },
+                    shape = MaterialTheme.shapes.extraLarge, // pill shape
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Text(
-                        text = "Πληροφορίες Ταινίας",
-                        style = MaterialTheme.typography.headlineSmall
-                    )
+                    Text("Trailer")
+                }
 
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    if (movie != null) {
-                        // Basic Information
-                        Text(
-                            text = "Τίτλος: ${movie.basicInfo.title}",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        if (movie.basicInfo.MovieURL.isNotEmpty()) {
-                            Text(
-                                text = "Σελίδα ταινίας: ${movie.basicInfo.MovieURL}",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+                Button(
+                    onClick = {
+                        val moviePageUrl = movie?.basicInfo?.MovieURL
+                        if (moviePageUrl?.isNotEmpty() ?: false) {
+                            val intent = Intent(Intent.ACTION_VIEW, moviePageUrl.toUri())
+                            context.startActivity(intent)
                         }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Detailed Information (if available)
-                        if (movie.nowPlayingInfo != null) {
-                            val info = movie.nowPlayingInfo
-                            Text(
-                                text = "Διάρκεια: ${info.duration}\n" +
-                                        "Είδος: ${info.genre}\n" +
-                                        "Ηλικιακός περιορισμός: ${info.ageRating}\n" +
-                                        "Αίθουσα: ${info.projectionRoom}\n" +
-                                        "Σκηνοθέτης: ${info.director}\n" +
-                                        "Περιγραφή: ${info.description}",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-
-                            if (info.cast.isNotEmpty()) {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "Ηθοποιοί: ${info.cast.joinToString(", ")}",
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                            }
-
-                            if (info.showtime.isNotEmpty()) {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "Ώρες προβολής: ${info.showtime.joinToString(", ")}",
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                            }
-                        } else if (movie.comingSoonInfo != null) {
-                            val info = movie.comingSoonInfo
-                            Text(
-                                text = "Διάρκεια: ${info.duration}\n" +
-                                        "Είδος: ${info.genre}\n" +
-                                        "Ηλικιακός περιορισμός: ${info.ageRating}\n" +
-                                        "Σκηνοθέτης: ${info.director}\n" +
-                                        "Ημερομηνία πρεμιέρας: ${info.premiereDate}\n" +
-                                        "Περιγραφή: ${info.description}",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-
-                            if (info.cast.isNotEmpty()) {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "Ηθοποιοί: ${info.cast.joinToString(", ")}",
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                            }
-                        } else {
-                            Text(
-                                text = "Δεν υπάρχουν επιπλέον πληροφορίες για αυτή την ταινία.",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        }
-                    } else {
-                        Text(
-                            text = "Δεν βρέθηκε η ταινία.",
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
+                    },
+                    shape = MaterialTheme.shapes.extraLarge,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Site")
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
 
-            // Action Buttons
-            Row(
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Movie Details
+            val info = movie?.nowPlayingInfo
+
+
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Button(
-                    onClick = { /* Add to favorites */ }
-                ) {
-                    Text("Αγαπημένα")
+                if (!info?.description.isNullOrEmpty() || !info?.genre.isNullOrEmpty()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            if (!info.description.isNullOrEmpty())
+                                Text(
+                                    text = (info.description + "\n"),
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            if (!info.genre.isNullOrEmpty())
+                                Text(
+                                    text = "Είδος: ${info.genre}",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                        }
+                    }
+                }
+                if (!info?.director.isNullOrEmpty() || !info?.cast.isNullOrEmpty()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "Σκηνοθέτης: ${info?.director}",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                text = "Ηθοποιοί: ${info?.cast?.joinToString(", ")}",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
+                }
+                if (!info?.showtime.isNullOrEmpty()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp) // λίγο κενό ανάμεσα στα Text
+                        ) {
+                            Text(
+                                text = "Ώρες προβολής:",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            info?.showtime?.forEach { time ->
+                                Text(
+                                    text = time,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+                    }
                 }
 
-                Button(
-                    onClick = { /* Share movie */ }
-                ) {
-                    Text("Κοινοποίηση")
+                if (!info?.director.isNullOrEmpty() || !info?.cast.isNullOrEmpty()) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            if (info.director.isNotEmpty())
+                                Text(
+                                    text = "Σκηνοθέτης: ${info.director}",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            if (info.cast.isNotEmpty())
+                                Text(
+                                    text = "Ηθοποιοί: ${info.cast?.joinToString(", ")}",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                        }
+                    }
                 }
             }
         }
     }
 }
+
