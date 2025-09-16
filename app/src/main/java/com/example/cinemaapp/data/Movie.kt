@@ -5,7 +5,8 @@ import java.util.Collections.emptyList
 data class MovieBasicInfo(
     val title: String = "",
     val posterUrl: String = "",
-    val MovieURL: String = ""
+    val MovieURL: String = "",
+    val isPlaying: Boolean = true
 )
 
 data class FullMovieInfo(

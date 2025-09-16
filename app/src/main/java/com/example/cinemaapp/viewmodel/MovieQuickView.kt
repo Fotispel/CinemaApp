@@ -17,6 +17,7 @@ import android.net.Uri
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalConfiguration
 
 @Composable
 fun MovieQuickViewItem(
@@ -24,10 +25,15 @@ fun MovieQuickViewItem(
     navController: NavController,
     onClick: (MovieBasicInfo) -> Unit
 ) {
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    val posterWidth = screenWidth / 2
+    val posterHeight = posterWidth * 3 / 2
+
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp)
+            .width(posterWidth)
+            .height(posterHeight)
+            .padding(4.dp)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = LocalIndication.current,
@@ -37,7 +43,9 @@ fun MovieQuickViewItem(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
         ) {
             if (basicInfo.posterUrl.isNotEmpty()) {
                 Image(
@@ -45,8 +53,9 @@ fun MovieQuickViewItem(
                     contentDescription = basicInfo.title,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(150.dp)
+                        .width(posterWidth)
+                        .height(posterHeight)
+
                 )
             } else {
                 Box(
@@ -58,16 +67,6 @@ fun MovieQuickViewItem(
                     Text("No Poster")
                 }
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Title
-            Text(
-                text = basicInfo.title,
-                modifier = Modifier
-                    .padding(horizontal = 8.dp)
-                    .fillMaxWidth()
-            )
         }
     }
 }

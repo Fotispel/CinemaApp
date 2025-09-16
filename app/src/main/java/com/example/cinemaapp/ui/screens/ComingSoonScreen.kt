@@ -30,19 +30,22 @@ fun ComingSoonScreen(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
-    val movies = viewModel.movies.collectAsState().value
+    val comingSoonMovies = viewModel.comingSoonMovies.collectAsState().value
+    val isLoading = viewModel.isLoading.collectAsState().value
 
     val pullToRefreshState = rememberPullToRefreshState()
 
-    LaunchedEffect(Unit) {
-        pullToRefreshState.startRefresh()
-        viewModel.fetchMovies("https://cinelandpantelis.gr/prosechos.html")
-        pullToRefreshState.endRefresh()
+    // Handle pull-to-refresh
+    LaunchedEffect(pullToRefreshState.isRefreshing) {
+        if (pullToRefreshState.isRefreshing) {
+            viewModel.refreshComingSoonMovies()
+            pullToRefreshState.endRefresh()
+        }
     }
 
     Box(modifier = modifier.fillMaxSize()) {
         LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
+            columns = GridCells.Fixed(2),
             contentPadding = PaddingValues(8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -50,31 +53,21 @@ fun ComingSoonScreen(
                 .nestedScroll(pullToRefreshState.nestedScrollConnection)
                 .fillMaxSize()
         ) {
-
-            items(movies) { movie ->
+            items(comingSoonMovies) { movie ->
                 MovieQuickViewItem(
                     basicInfo = movie.basicInfo,
-                    navController = navController, // μπορεί να αφαιρεθεί αν δεν χρειάζεται
+                    navController = navController,
                     onClick = { clickedMovie ->
                         val encodedUrl = Uri.encode(clickedMovie.MovieURL)
                         navController.navigate("movie_page/$encodedUrl")
                     }
                 )
             }
-
-
         }
 
         PullToRefreshContainer(
             state = pullToRefreshState,
             modifier = Modifier.align(Alignment.TopCenter)
         )
-
-        if (pullToRefreshState.isRefreshing) {
-            LaunchedEffect(true) {
-                viewModel.fetchMovies("https://cinelandpantelis.gr/prosechos.html")
-                pullToRefreshState.endRefresh()
-            }
-        }
     }
 }

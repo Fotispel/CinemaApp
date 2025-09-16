@@ -67,7 +67,6 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                 val posterWidth = screenWidth / 2
                 val posterHeight = posterWidth * 3 / 2
 
-                // Poster
                 Card(
                     modifier = Modifier
                         .width(posterWidth)

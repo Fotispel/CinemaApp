@@ -1,6 +1,7 @@
-package com.example.cinemaapp.ui
+package com.example.cinemaapp.ui.screens
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -15,6 +16,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.example.cinemaapp.viewmodel.MovieViewModel
 import androidx.navigation.NavController
+import com.example.cinemaapp.ui.MovieQuickViewItem
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -24,19 +26,22 @@ fun NowPlayingScreen(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
-    val movies = viewModel.movies.collectAsState().value
+    val nowPlayingMovies = viewModel.nowPlayingMovies.collectAsState().value
+    val isLoading = viewModel.isLoading.collectAsState().value
 
     val pullToRefreshState = rememberPullToRefreshState()
 
-    LaunchedEffect(Unit) {
-        pullToRefreshState.startRefresh()
-        viewModel.fetchMovies("https://cinelandpantelis.gr/proballontai.html")
-        pullToRefreshState.endRefresh()
+    // Handle pull-to-refresh
+    LaunchedEffect(pullToRefreshState.isRefreshing) {
+        if (pullToRefreshState.isRefreshing) {
+            viewModel.refreshNowPlayingMovies()
+            pullToRefreshState.endRefresh()
+        }
     }
 
     Box(modifier = modifier.fillMaxSize()) {
         LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
+            columns = GridCells.Fixed(2),
             contentPadding = PaddingValues(8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -44,11 +49,10 @@ fun NowPlayingScreen(
                 .nestedScroll(pullToRefreshState.nestedScrollConnection)
                 .fillMaxSize()
         ) {
-
-            items(movies) { movie ->
+            items(nowPlayingMovies) { movie ->
                 MovieQuickViewItem(
                     basicInfo = movie.basicInfo,
-                    navController = navController, // μπορεί να αφαιρεθεί αν δεν χρειάζεται
+                    navController = navController,
                     onClick = { clickedMovie ->
                         val encodedUrl = Uri.encode(clickedMovie.MovieURL)
                         navController.navigate("movie_page/$encodedUrl")
@@ -61,13 +65,6 @@ fun NowPlayingScreen(
             state = pullToRefreshState,
             modifier = Modifier.align(Alignment.TopCenter)
         )
-
-        if (pullToRefreshState.isRefreshing) {
-            LaunchedEffect(true) {
-                viewModel.fetchMovies("https://cinelandpantelis.gr/proballontai.html")
-                pullToRefreshState.endRefresh()
-            }
-        }
     }
 }
 

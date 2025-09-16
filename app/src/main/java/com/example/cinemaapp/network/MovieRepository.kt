@@ -12,14 +12,19 @@ class MovieRepository {
         val doc = Jsoup.connect(url).userAgent("Mozilla/5.0").get()
         val elements = doc.select("div.item")
 
+        var isPlaying = true
+        if (url == "https://cinelandpantelis.gr/prosechos.html")
+            isPlaying = false
+
         return elements.map { element ->
             val title = element.selectFirst("figcaption a")?.text()?.trim() ?: "Unknown"
             val posterUrl =
                 ("https://cinelandpantelis.gr/" + element.selectFirst("img.item__img")?.attr("src"))
             val moviePageRelative = element.selectFirst("figcaption a")?.attr("href") ?: ""
             val moviePageUrl = "https://cinelandpantelis.gr/$moviePageRelative"
+            Log.d("MovieRepository", "Fetched movie: $title, IsPlaying: $isPlaying")
             Movie(
-                basicInfo = MovieBasicInfo(title, posterUrl, moviePageUrl)
+                basicInfo = MovieBasicInfo(title, posterUrl, moviePageUrl, isPlaying)
             )
         }
     }
@@ -48,13 +53,15 @@ class MovieRepository {
                 }
             }
 
-            val projectionRoom = doc.selectFirst("div.aithouses span.cinema")?.attr("class")
+            var projectionRoom = doc.selectFirst("div.aithouses span.cinema")?.attr("class")
                 ?.split(" ")
                 ?.find { it.startsWith("Cineland") }
-                ?.replace("Cineland", "Αίθουσα ") ?: ""
+                ?.replace("Cineland", "Αίθουσα ") ?: "-"
 
             val director = info["Σκηνοθεσία"] ?: ""
-            val duration = info["Διάρκεια"] ?: ""
+
+            val duration = info["Διάρκεια"] ?: "-"
+
             val genre = info["Είδος ταινίας"] ?: ""
 
             val releaseDateElement = doc.select("div.release_date span").last()
@@ -75,7 +82,9 @@ class MovieRepository {
                 "$day: $time"
             }
 
-            val ageRating = doc.selectFirst("div.rated span.rated-label")?.text()?.trim() ?: ""
+            val ageRating = doc.selectFirst("div.rated span.rated-label")?.text()?.trim() ?: "-"
+
+
             Log.d("MovieRepository", "Description: $description")
             Movie(
                 basicInfo = MovieBasicInfo(title, posterUrl, movieUrl),

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,7 +24,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.cinemaapp.ui.NowPlayingScreen
+import com.example.cinemaapp.ui.screens.NowPlayingScreen
 import com.example.cinemaapp.ui.screens.ComingSoonScreen
 import com.example.cinemaapp.ui.screens.MoviePage
 import com.example.cinemaapp.ui.theme.CinemaAppTheme
@@ -72,7 +73,6 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     if (currentRoute?.startsWith("movie_page") == true) {
-                        // FULL SCREEN χωρίς top/bottom bar
                         NavHost(
                             navController = navController,
                             startDestination = "now_playing",
@@ -186,7 +186,7 @@ fun CinemaTopBar() {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { expanded = true }) {
                         Icon(
-                            imageVector = Icons.Filled.Home,
+                            imageVector = Icons.Filled.KeyboardArrowDown,
                             contentDescription = "Cinema Choices"
                         )
                     }
