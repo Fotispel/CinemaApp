@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,6 +25,11 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.cinemaapp.viewmodel.MovieViewModel
 import androidx.core.net.toUri
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
+import com.example.cinemaapp.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +43,16 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
     }
 
     val title = movie?.basicInfo?.title ?: "Φόρτωση..."
+    val ubuntuMedium = FontFamily(Font(R.font.ubuntu_medium, weight = FontWeight.W500))
+    val ubuntuBold = FontFamily(Font(R.font.ubuntu_bold, weight = FontWeight.Bold))
+    val ubuntuRegular = FontFamily(Font(R.font.ubuntu_regular, weight = FontWeight.Normal))
+    val ubuntuLight = FontFamily(Font(R.font.ubuntu_light, weight = FontWeight.Light))
+    val ubuntuItalic = FontFamily(Font(R.font.ubuntu_italic, weight = FontWeight.Normal))
+    val ubuntuBoldItalic = FontFamily(Font(R.font.ubuntu_bolditalic, weight = FontWeight.Bold))
+    val ubuntuMediumItalic =
+        FontFamily(Font(R.font.ubuntu_mediumitalic, weight = FontWeight.Medium))
+    val ubuntuLightItalic = FontFamily(Font(R.font.ubuntu_lightitalic, weight = FontWeight.Light))
+
 
     Scaffold(
         topBar = { /* TopAppBar όπως πριν */ }
@@ -52,9 +69,9 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
             // Movie Title
             Text(
                 text = title,
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.fillMaxWidth(),
-                fontSize = 21.dp.value.sp
+                fontFamily = ubuntuMedium,
+                fontWeight = FontWeight.Medium,
+                fontSize = 20.sp
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -95,7 +112,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                 // Age, Duration & Room Cards
                 Column(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.height(posterHeight)
+                    modifier = Modifier.height(posterHeight),
                 ) {
                     // Age
                     Card(
@@ -113,7 +130,9 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                             Text(
                                 text = age_text,
                                 style = MaterialTheme.typography.headlineMedium,
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
+                                fontFamily = ubuntuMedium,
+                                fontWeight = FontWeight.Medium
                             )
                         }
                     }
@@ -127,7 +146,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                     ) {
                         val duration =
                             movie?.fullInfo?.duration
-                            ?: "--"
+                                ?: "--"
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier.fillMaxSize()
@@ -135,7 +154,9 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                             Text(
                                 text = duration,
                                 style = MaterialTheme.typography.headlineMedium,
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
+                                fontFamily = ubuntuMedium,
+                                fontWeight = FontWeight.Medium
                             )
                         }
                     }
@@ -155,7 +176,9 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                             Text(
                                 text = room,
                                 style = MaterialTheme.typography.headlineMedium,
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
+                                fontFamily = ubuntuMedium,
+                                fontWeight = FontWeight.Medium
                             )
                         }
                     }
@@ -222,14 +245,27 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                         ) {
                             if (info.description.isNotEmpty())
                                 Text(
-                                    text = (info.description + "\n"),
-                                    style = MaterialTheme.typography.bodyLarge
+                                    text = "Yπόθεση",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontFamily = ubuntuMedium
                                 )
+                            Text(
+                                text = (info.description + "\n"),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontFamily = ubuntuItalic
+                            )
                             if (info.genre.isNotEmpty())
-                                Text(
-                                    text = "Είδος: ${info.genre}",
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
+                                if (!info.genre.isNullOrEmpty()) {
+                                    Text(
+                                        text = buildAnnotatedString {
+                                            withStyle(style = SpanStyle(fontFamily = ubuntuBold)) {
+                                                append("Είδος: ")
+                                            }
+                                            append(info.genre)
+                                        },
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                }
                         }
                     }
                 }
@@ -244,7 +280,16 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Text(
-                                text = "Πρεμιέρα: ${info.premiereDate}",
+                                text = buildAnnotatedString {
+                                    withStyle(
+                                        style = SpanStyle(
+                                            fontFamily = ubuntuBold
+                                        )
+                                    ) {
+                                        append("Πρεμιέρα: ")
+                                    }
+                                    append(info.premiereDate)
+                                },
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
@@ -263,12 +308,17 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                         ) {
                             Text(
                                 text = "Ώρες προβολής:",
-                                style = MaterialTheme.typography.bodyLarge
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontFamily = ubuntuMedium
                             )
+
+                            Spacer(modifier = Modifier.height(3.dp))
+
                             info.showtime.forEach { time ->
                                 Text(
                                     text = time,
-                                    style = MaterialTheme.typography.bodyMedium
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontFamily = ubuntuRegular
                                 )
                             }
                         }
@@ -284,16 +334,31 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                             modifier = Modifier.padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            if (info.director.isNotEmpty())
+                            if (info.director.isNotEmpty()) {
                                 Text(
-                                    text = "Σκηνοθέτης: ${info.director}",
+                                    text = buildAnnotatedString {
+                                        withStyle(style = SpanStyle(fontFamily = ubuntuBold)) {
+                                            append("Σκηνοθέτης: ")
+                                        }
+                                        append(info.director)
+                                    },
                                     style = MaterialTheme.typography.bodyLarge
                                 )
-                            if (info.cast.isNotEmpty())
+                            }
+
+                            Spacer(modifier = Modifier.height(4.dp))
+
+                            if (info.cast.isNotEmpty()) {
                                 Text(
-                                    text = "Ηθοποιοί: ${info.cast.joinToString(", ")}",
+                                    text = buildAnnotatedString {
+                                        withStyle(style = SpanStyle(fontFamily = ubuntuBold)) {
+                                            append("Ηθοποιοί: ")
+                                        }
+                                        append(info.cast.joinToString(", "))
+                                    },
                                     style = MaterialTheme.typography.bodyLarge
                                 )
+                            }
                         }
                     }
                 }

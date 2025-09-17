@@ -49,7 +49,14 @@ fun NowPlayingScreen(
                 .nestedScroll(pullToRefreshState.nestedScrollConnection)
                 .fillMaxSize()
         ) {
-            items(nowPlayingMovies) { movie ->
+            items(
+                nowPlayingMovies,
+                key = { movie ->
+                    // Prefer a stable ID if available; fallback to posterUrl or title
+                    movie.basicInfo.posterUrl.ifEmpty { movie.basicInfo.title }
+                },
+                contentType = { _ -> "movie" }
+            ) { movie ->
                 MovieQuickViewItem(
                     basicInfo = movie.basicInfo,
                     navController = navController,

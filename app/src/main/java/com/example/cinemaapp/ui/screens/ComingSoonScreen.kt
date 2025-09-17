@@ -53,7 +53,13 @@ fun ComingSoonScreen(
                 .nestedScroll(pullToRefreshState.nestedScrollConnection)
                 .fillMaxSize()
         ) {
-            items(comingSoonMovies) { movie ->
+            items(
+                comingSoonMovies,
+                key = { movie ->
+                    movie.basicInfo.posterUrl.ifEmpty { movie.basicInfo.title }
+                },
+                contentType = { _ -> "movie" }
+            ) { movie ->
                 MovieQuickViewItem(
                     basicInfo = movie.basicInfo,
                     navController = navController,
