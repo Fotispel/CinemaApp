@@ -20,6 +20,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -54,17 +55,18 @@ class MainActivity : ComponentActivity() {
                 val items = listOf(
                     BottomNavigationItem(
                         title = "Προβάλλονται",
-                        selectedIcon = Icons.Filled.Home,
-                        unselectedIcon = Icons.Outlined.Home,
+                        selectedIcon = ImageVector.vectorResource(id = R.drawable.baseline_theaters_24),
+                        unselectedIcon = ImageVector.vectorResource(id = R.drawable.outline_theaters_24),
                         route = "now_playing"
                     ),
                     BottomNavigationItem(
                         title = "Προσεχώς",
-                        selectedIcon = Icons.Filled.Home,
-                        unselectedIcon = Icons.Outlined.Home,
+                        selectedIcon = ImageVector.vectorResource(id = R.drawable.baseline_calendar_today_24),
+                        unselectedIcon = ImageVector.vectorResource(id = R.drawable.outline_calendar_today_24),
                         route = "coming_soon"
                     )
                 )
+
 
                 var selectedItem by rememberSaveable { mutableIntStateOf(0) }
 

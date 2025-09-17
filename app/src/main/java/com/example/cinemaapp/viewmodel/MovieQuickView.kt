@@ -25,15 +25,11 @@ fun MovieQuickViewItem(
     navController: NavController,
     onClick: (MovieBasicInfo) -> Unit
 ) {
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
-    val posterWidth = screenWidth / 2
-    val posterHeight = posterWidth * 3 / 2
-
     Card(
         modifier = Modifier
-            .width(posterWidth)
-            .height(posterHeight)
             .padding(4.dp)
+            .fillMaxWidth()
+            .aspectRatio(2f / 3f)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = LocalIndication.current,
@@ -42,30 +38,19 @@ fun MovieQuickViewItem(
             },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-        ) {
-            if (basicInfo.posterUrl.isNotEmpty()) {
-                Image(
-                    painter = rememberAsyncImagePainter(model = basicInfo.posterUrl),
-                    contentDescription = basicInfo.title,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .width(posterWidth)
-                        .height(posterHeight)
-
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(150.dp),
-                    contentAlignment = androidx.compose.ui.Alignment.Center
-                ) {
-                    Text("No Poster")
-                }
+        if (basicInfo.posterUrl.isNotEmpty()) {
+            Image(
+                painter = rememberAsyncImagePainter(model = basicInfo.posterUrl),
+                contentDescription = basicInfo.title,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        } else {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = androidx.compose.ui.Alignment.Center
+            ) {
+                Text("No Poster")
             }
         }
     }
