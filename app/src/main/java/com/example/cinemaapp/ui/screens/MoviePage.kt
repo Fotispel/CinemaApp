@@ -69,8 +69,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
             // Movie Title
             Text(
                 text = title,
-                fontFamily = ubuntuMedium,
-                fontWeight = FontWeight.Medium,
+                fontFamily = ubuntuBold,
                 fontSize = 20.sp
             )
 
@@ -155,8 +154,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                                 text = duration,
                                 style = MaterialTheme.typography.headlineMedium,
                                 textAlign = TextAlign.Center,
-                                fontFamily = ubuntuMedium,
-                                fontWeight = FontWeight.Medium
+                                fontFamily = ubuntuMedium
                             )
                         }
                     }
@@ -178,7 +176,6 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                                 style = MaterialTheme.typography.headlineMedium,
                                 textAlign = TextAlign.Center,
                                 fontFamily = ubuntuMedium,
-                                fontWeight = FontWeight.Medium
                             )
                         }
                     }
@@ -258,7 +255,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                                 if (!info.genre.isNullOrEmpty()) {
                                     Text(
                                         text = buildAnnotatedString {
-                                            withStyle(style = SpanStyle(fontFamily = ubuntuBold)) {
+                                            withStyle(style = SpanStyle(fontFamily = ubuntuMedium)) {
                                                 append("Είδος: ")
                                             }
                                             append(info.genre)
@@ -283,7 +280,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                                 text = buildAnnotatedString {
                                     withStyle(
                                         style = SpanStyle(
-                                            fontFamily = ubuntuBold
+                                            fontFamily = ubuntuMedium
                                         )
                                     ) {
                                         append("Πρεμιέρα: ")
@@ -337,7 +334,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                             if (info.director.isNotEmpty()) {
                                 Text(
                                     text = buildAnnotatedString {
-                                        withStyle(style = SpanStyle(fontFamily = ubuntuBold)) {
+                                        withStyle(style = SpanStyle(fontFamily = ubuntuMedium)) {
                                             append("Σκηνοθέτης: ")
                                         }
                                         append(info.director)
@@ -351,7 +348,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                             if (info.cast.isNotEmpty()) {
                                 Text(
                                     text = buildAnnotatedString {
-                                        withStyle(style = SpanStyle(fontFamily = ubuntuBold)) {
+                                        withStyle(style = SpanStyle(fontFamily = ubuntuMedium)) {
                                             append("Ηθοποιοί: ")
                                         }
                                         append(info.cast.joinToString(", "))

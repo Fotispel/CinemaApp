@@ -20,22 +20,57 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
+        }
+        debug {
+            isMinifyEnabled = false
+            isShrinkResources = false
+
+            // Disable PNG crunching (saves time when packaging resources)
+            isCrunchPngs = false
+
+            // Don’t include debug build in release signing setup
+            signingConfig = null
         }
     }
+
     compileOptions {
+        // Consider moving to Java 17 for faster compilation
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
+        // 🚀 Faster incremental compilation
+        freeCompilerArgs += listOf(
+            "-Xjvm-default=all",
+            "-Xskip-prerelease-check"
+        )
     }
+
     buildFeatures {
         compose = true
+    }
+
+    // 🚀 Disable unnecessary checks in debug
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
+    }
+
+    packaging {
+        // Exclude extra metadata to speed up build
+        resources.excludes += setOf(
+            "META-INF/LICENSE*",
+            "META-INF/NOTICE*"
+        )
     }
 }
 
@@ -48,6 +83,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
@@ -58,6 +94,7 @@ dependencies {
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.compose.animation.core)
     implementation(libs.androidx.compose.ui)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
