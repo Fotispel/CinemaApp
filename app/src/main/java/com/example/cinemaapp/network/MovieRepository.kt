@@ -53,10 +53,14 @@ class MovieRepository {
                 }
             }
 
-            var projectionRoom = doc.selectFirst("div.aithouses span.cinema")?.attr("class")
-                ?.split(" ")
-                ?.find { it.startsWith("Cineland") }
-                ?.replace("Cineland", "Αίθουσα ") ?: "-"
+            val projectionRooms = doc.select("div.aithouses span.cinema").mapNotNull { span ->
+                span.classNames().find { it.startsWith("Cineland") }?.replace("Cineland", "Αίθουσα ")
+            }
+
+            val projectionRoom = if (projectionRooms.isNotEmpty()) {
+                projectionRooms.joinToString(", ")
+            } else "-"
+
 
             val director = info["Σκηνοθεσία"] ?: ""
 
@@ -76,11 +80,12 @@ class MovieRepository {
             val castList = castText.split(",").map { it.trim() }.filter { it.isNotEmpty() }
 
 
-            val showtime = doc.select("div.ce_dma_eg_2 ul li.text").mapNotNull { li ->
+            val showtime = doc.select("div.ce_dma_eg_1 ul li.text, div.ce_dma_eg_2 ul li.text").mapNotNull { li ->
                 val day = li.selectFirst("span.label")?.text()?.trim() ?: return@mapNotNull null
                 val time = li.selectFirst("span.value")?.text()?.trim() ?: return@mapNotNull null
                 "$day: $time"
             }
+
 
             val ageRating = doc.selectFirst("div.rated span.rated-label")?.text()?.trim() ?: "-"
 
