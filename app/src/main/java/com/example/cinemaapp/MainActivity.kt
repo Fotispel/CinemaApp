@@ -158,7 +158,7 @@ class MainActivity : ComponentActivity() {
                                 startDestination = "now_playing",
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .padding(innerPadding) // Χρήση του innerPadding
+                                    .padding(innerPadding)
                             ) {
                                 composable("now_playing") {
                                     NowPlayingScreen(
