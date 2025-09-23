@@ -124,7 +124,6 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     } else {
-                        // Κανονικό Scaffold με TopBar & BottomBar
                         Scaffold(
                             topBar = { CinemaTopBar(movieViewModel) },
                             bottomBar = {
@@ -198,7 +197,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun CinemaTopBar(movieViewModel: MovieViewModel) {
     var expanded by rememberSaveable { mutableStateOf(false) }
-    var currentCinema by rememberSaveable { mutableStateOf("Παντελής") }
+    var currentCinema by rememberSaveable { mutableStateOf("Τεχνόπολις") }
     val ubuntuMedium = FontFamily(Font(R.font.ubuntu_medium, weight = FontWeight.W500))
 
     TopAppBar(
@@ -229,6 +228,7 @@ fun CinemaTopBar(movieViewModel: MovieViewModel) {
                         onClick = {
                             currentCinema = "Τεχνόπολις"
                             expanded = false
+                            movieViewModel.selectCinema("Texnopolis")
                             movieViewModel.fetchAllMovies("Texnopolis")
                         }
                     )
@@ -237,6 +237,7 @@ fun CinemaTopBar(movieViewModel: MovieViewModel) {
                         onClick = {
                             currentCinema = "Παντελής"
                             expanded = false
+                            movieViewModel.selectCinema("Pantelis")
                             movieViewModel.fetchAllMovies("Pantelis")
                         }
                     )

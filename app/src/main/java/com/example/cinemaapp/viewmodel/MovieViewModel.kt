@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class MovieViewModel(initialCinema: String = "Pantelis") : ViewModel() {
+class MovieViewModel(initialCinema: String = "Texnopolis") : ViewModel() {
 
     private val repository = MovieRepository()
 
@@ -30,17 +30,14 @@ class MovieViewModel(initialCinema: String = "Pantelis") : ViewModel() {
     val selectedCinema: StateFlow<String> = _selectedCinema
 
     init {
-        // Αυτόματα φορτώνει τις ταινίες με βάση το αρχικό cinema
-        viewModelScope.launch {
-            _selectedCinema.collect { cinema ->
-                fetchAllMovies(cinema)
-            }
-        }
+        fetchAllMovies(initialCinema)
     }
+
 
     fun selectCinema(cinema: String) {
         _selectedCinema.value = cinema
     }
+
 
     fun fetchAllMovies(cinema: String) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -75,29 +72,45 @@ class MovieViewModel(initialCinema: String = "Pantelis") : ViewModel() {
         _movies.value = _nowPlayingMovies.value + _comingSoonMovies.value
     }
 
-    fun refreshNowPlayingMovies() {
+    fun refreshNowPlayingMovies(cinema: String = _selectedCinema.value) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val nowPlayingList = repository.fetchMovies("https://cinelandpantelis.gr/proballontai.html")
+                val nowPlayingList = when (cinema) {
+                    "Pantelis" -> repository.fetchMovies("https://cinelandpantelis.gr/proballontai.html")
+                    "Texnopolis" -> {
+                        val allMovies = repository.fetchMovies("https://www.texnopolis.net/movies/")
+                        allMovies.filter { it.basicInfo.isPlaying }
+                    }
+                    else -> emptyList()
+                }
                 _nowPlayingMovies.value = nowPlayingList
                 updateCombinedMovies()
             } catch (e: Exception) {
-                Log.e("MovieViewModel", "Error refreshing now playing movies", e)
+                Log.e("MovieViewModel", "Error refreshing now playing movies for $cinema", e)
             }
         }
     }
 
-    fun refreshComingSoonMovies() {
+
+    fun refreshComingSoonMovies(cinema: String = _selectedCinema.value) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val comingSoonList = repository.fetchMovies("https://cinelandpantelis.gr/prosechos.html")
+                val comingSoonList = when (cinema) {
+                    "Pantelis" -> repository.fetchMovies("https://cinelandpantelis.gr/prosechos.html")
+                    "Texnopolis" -> {
+                        val allMovies = repository.fetchMovies("https://www.texnopolis.net/movies/")
+                        allMovies.filter { !it.basicInfo.isPlaying }
+                    }
+                    else -> emptyList()
+                }
                 _comingSoonMovies.value = comingSoonList
                 updateCombinedMovies()
             } catch (e: Exception) {
-                Log.e("MovieViewModel", "Error refreshing coming soon movies", e)
+                Log.e("MovieViewModel", "Error refreshing coming soon movies for $cinema", e)
             }
         }
     }
+
 
     fun fetchDetailedMovieInfo(movieUrl: String) {
         viewModelScope.launch(Dispatchers.IO) {

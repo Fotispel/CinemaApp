@@ -32,13 +32,13 @@ fun ComingSoonScreen(
 ) {
     val comingSoonMovies = viewModel.comingSoonMovies.collectAsState().value
     val isLoading = viewModel.isLoading.collectAsState().value
+    val selectedCinema = viewModel.selectedCinema.collectAsState().value
 
     val pullToRefreshState = rememberPullToRefreshState()
 
-    // Handle pull-to-refresh
     LaunchedEffect(pullToRefreshState.isRefreshing) {
         if (pullToRefreshState.isRefreshing) {
-            viewModel.refreshComingSoonMovies()
+            viewModel.refreshComingSoonMovies(selectedCinema)
             pullToRefreshState.endRefresh()
         }
     }

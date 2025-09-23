@@ -28,13 +28,13 @@ fun NowPlayingScreen(
 ) {
     val nowPlayingMovies = viewModel.nowPlayingMovies.collectAsState().value
     val isLoading = viewModel.isLoading.collectAsState().value
+    val selectedCinema = viewModel.selectedCinema.collectAsState().value
 
     val pullToRefreshState = rememberPullToRefreshState()
 
-    // Handle pull-to-refresh
     LaunchedEffect(pullToRefreshState.isRefreshing) {
         if (pullToRefreshState.isRefreshing) {
-            viewModel.refreshNowPlayingMovies()
+            viewModel.refreshNowPlayingMovies(selectedCinema)
             pullToRefreshState.endRefresh()
         }
     }
@@ -51,10 +51,7 @@ fun NowPlayingScreen(
         ) {
             items(
                 nowPlayingMovies,
-                key = { movie ->
-                    // Prefer a stable ID if available; fallback to posterUrl or title
-                    movie.basicInfo.posterUrl.ifEmpty { movie.basicInfo.title }
-                },
+                key = { movie -> movie.basicInfo.posterUrl.ifEmpty { movie.basicInfo.title } },
                 contentType = { _ -> "movie" }
             ) { movie ->
                 MovieQuickViewItem(
@@ -74,4 +71,5 @@ fun NowPlayingScreen(
         )
     }
 }
+
 

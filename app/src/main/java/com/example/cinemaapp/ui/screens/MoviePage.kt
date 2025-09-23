@@ -77,7 +77,12 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
         ) {
             // TopAppBar
             TopAppBar(
-                title = { Text(title) },
+                title = {
+                    Text(
+                        title,
+                        fontFamily = ubuntuMedium
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
@@ -147,8 +152,8 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                         ) {
                             var age = ""
-                            if (info?.posterUrl?.contains("cinelandpantelis.gr") == true) {
-                                val age_number = movie.fullInfo.ageRating?.filter { it.isDigit() }
+                            if (movie?.basicInfo?.MovieURL?.contains("cinelandpantelis.gr") == true) {
+                                val age_number = movie.fullInfo?.ageRating?.filter { it.isDigit() }
                                 age =
                                     if (!age_number.isNullOrEmpty()) "Κ$age_number" else "Κ"
                             } else {
@@ -212,15 +217,25 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier.fillMaxSize()
                             ) {
-                                val room = movie?.fullInfo?.projectionRoom
-                                    ?.substringBefore("Αίθουσα")
-                                    ?.trim()
-                                    ?: "-"
+                                if (movie?.basicInfo?.MovieURL?.contains("cinelandpantelis.gr") == true) {
+                                    val room = movie.fullInfo?.projectionRoom
+                                        ?.trim()
+                                        ?: "-"
 
-                                AutoResizeText(
-                                    text = room,
-                                    fontFamily = ubuntuMedium
-                                )
+                                    AutoResizeText(
+                                        text = room,
+                                        fontFamily = ubuntuMedium
+                                    )
+                                } else {
+                                    val roomRaw = movie?.fullInfo?.projectionRoom
+                                    val room = roomRaw?.substringBefore("Αίθουσα")?.trim()
+                                    val roomDisplay = if (room.isNullOrBlank()) "-" else room
+
+                                    AutoResizeText(
+                                        text = roomDisplay,
+                                        fontFamily = ubuntuMedium
+                                    )
+                                }
                             }
                         }
                     }
@@ -352,7 +367,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
 
                                 Spacer(modifier = Modifier.height(3.dp))
 
-                                if (info.posterUrl.contains("cinelandpantelis.gr")) {
+                                if (movie.basicInfo.MovieURL.contains("cinelandpantelis.gr")) {
                                     info.showtime.forEach { entry ->
                                         // entry[0] = day, entry[1] = time
                                         val day = entry.getOrNull(0) ?: "-"
