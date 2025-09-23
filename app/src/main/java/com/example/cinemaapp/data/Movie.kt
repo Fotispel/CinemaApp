@@ -20,7 +20,7 @@ data class FullMovieInfo(
     val director: String = "",
     val cast: List<String> = emptyList(),
     val trailerUrl: String = "",
-    val showtime: List<String> = emptyList(),
+    val showtime: List<List<String>> = emptyList(),
     val premiereDate: String = ""
 )
 

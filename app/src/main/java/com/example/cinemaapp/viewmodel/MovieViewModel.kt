@@ -10,48 +10,69 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class MovieViewModel : ViewModel() {
+class MovieViewModel(initialCinema: String = "Pantelis") : ViewModel() {
 
     private val repository = MovieRepository()
 
-    // Separate state flows for now playing and coming soon movies
     private val _nowPlayingMovies = MutableStateFlow<List<Movie>>(emptyList())
     val nowPlayingMovies: StateFlow<List<Movie>> = _nowPlayingMovies
 
     private val _comingSoonMovies = MutableStateFlow<List<Movie>>(emptyList())
     val comingSoonMovies: StateFlow<List<Movie>> = _comingSoonMovies
 
-    // Combined movies for backward compatibility
     private val _movies = MutableStateFlow<List<Movie>>(emptyList())
     val movies: StateFlow<List<Movie>> = _movies
 
-    // Loading states
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    private val _selectedCinema = MutableStateFlow(initialCinema)
+    val selectedCinema: StateFlow<String> = _selectedCinema
+
     init {
-        // Fetch all movies at startup
-        fetchAllMovies()
+        // Αυτόματα φορτώνει τις ταινίες με βάση το αρχικό cinema
+        viewModelScope.launch {
+            _selectedCinema.collect { cinema ->
+                fetchAllMovies(cinema)
+            }
+        }
     }
 
-    fun fetchAllMovies() {
+    fun selectCinema(cinema: String) {
+        _selectedCinema.value = cinema
+    }
+
+    fun fetchAllMovies(cinema: String) {
         viewModelScope.launch(Dispatchers.IO) {
             _isLoading.value = true
             try {
-                val nowPlayingList = repository.fetchMovies("https://cinelandpantelis.gr/proballontai.html")
-                val comingSoonList = repository.fetchMovies("https://cinelandpantelis.gr/prosechos.html")
-                
-                _nowPlayingMovies.value = nowPlayingList
-                _comingSoonMovies.value = comingSoonList
-                _movies.value = nowPlayingList + comingSoonList
-                
-                Log.d("MovieViewModel", "Fetched ${nowPlayingList.size} now playing and ${comingSoonList.size} coming soon movies")
+                if (cinema == "Pantelis") {
+                    val nowPlayingList = repository.fetchMovies("https://cinelandpantelis.gr/proballontai.html")
+                    val comingSoonList = repository.fetchMovies("https://cinelandpantelis.gr/prosechos.html")
+                    _nowPlayingMovies.value = nowPlayingList
+                    _comingSoonMovies.value = comingSoonList
+                    _movies.value = nowPlayingList + comingSoonList
+                } else if (cinema == "Texnopolis") {
+                    val allMovies = repository.fetchMovies("https://www.texnopolis.net/movies/")
+                    val nowPlayingList = allMovies.filter { it.basicInfo.isPlaying }
+                    val comingSoonList = allMovies.filter { !it.basicInfo.isPlaying }
+
+                    _nowPlayingMovies.value = nowPlayingList
+                    _comingSoonMovies.value = comingSoonList
+                    _movies.value = allMovies
+                } else {
+                    Log.w("MovieViewModel", "Unknown cinema: $cinema")
+                }
             } catch (e: Exception) {
-                Log.e("MovieViewModel", "Error fetching movies", e)
+                Log.e("MovieViewModel", "Error fetching movies for $cinema", e)
             } finally {
                 _isLoading.value = false
             }
         }
+    }
+
+    private fun updateCombinedMovies() {
+        _movies.value = _nowPlayingMovies.value + _comingSoonMovies.value
     }
 
     fun refreshNowPlayingMovies() {
@@ -60,7 +81,6 @@ class MovieViewModel : ViewModel() {
                 val nowPlayingList = repository.fetchMovies("https://cinelandpantelis.gr/proballontai.html")
                 _nowPlayingMovies.value = nowPlayingList
                 updateCombinedMovies()
-                Log.d("MovieViewModel", "Refreshed ${nowPlayingList.size} now playing movies")
             } catch (e: Exception) {
                 Log.e("MovieViewModel", "Error refreshing now playing movies", e)
             }
@@ -73,38 +93,16 @@ class MovieViewModel : ViewModel() {
                 val comingSoonList = repository.fetchMovies("https://cinelandpantelis.gr/prosechos.html")
                 _comingSoonMovies.value = comingSoonList
                 updateCombinedMovies()
-                Log.d("MovieViewModel", "Refreshed ${comingSoonList.size} coming soon movies")
             } catch (e: Exception) {
                 Log.e("MovieViewModel", "Error refreshing coming soon movies", e)
             }
         }
     }
 
-    fun refreshAllMovies() {
-        fetchAllMovies()
-    }
-
-    private fun updateCombinedMovies() {
-        _movies.value = _nowPlayingMovies.value + _comingSoonMovies.value
-    }
-
-    // Legacy method for backward compatibility
-    fun fetchMovies(url: String) {
-        when (url) {
-            "https://cinelandpantelis.gr/proballontai.html" -> refreshNowPlayingMovies()
-            "https://cinelandpantelis.gr/prosechos.html" -> refreshComingSoonMovies()
-            else -> fetchAllMovies()
-        }
-    }
-
     fun fetchDetailedMovieInfo(movieUrl: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val detailedMovie = repository.fetchDetailedMovieInfo(movieUrl)
-
-            Log.d("MovieViewModel", "Detailed movie fetched: $detailedMovie")
-
             if (detailedMovie != null) {
-                // Update in now playing movies
                 val currentNowPlaying = _nowPlayingMovies.value.toMutableList()
                 val nowPlayingIndex = currentNowPlaying.indexOfFirst { it.basicInfo.MovieURL == detailedMovie.basicInfo.MovieURL }
                 if (nowPlayingIndex != -1) {
@@ -112,7 +110,6 @@ class MovieViewModel : ViewModel() {
                     _nowPlayingMovies.value = currentNowPlaying
                 }
 
-                // Update in coming soon movies
                 val currentComingSoon = _comingSoonMovies.value.toMutableList()
                 val comingSoonIndex = currentComingSoon.indexOfFirst { it.basicInfo.MovieURL == detailedMovie.basicInfo.MovieURL }
                 if (comingSoonIndex != -1) {
@@ -120,7 +117,6 @@ class MovieViewModel : ViewModel() {
                     _comingSoonMovies.value = currentComingSoon
                 }
 
-                // Update combined movies
                 updateCombinedMovies()
             }
         }

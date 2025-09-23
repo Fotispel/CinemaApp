@@ -1,11 +1,14 @@
 package com.example.cinemaapp
 
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.core.view.WindowCompat
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,6 +51,19 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            window.navigationBarColor = android.graphics.Color.TRANSPARENT
+            window.statusBarColor = android.graphics.Color.TRANSPARENT
+        }
+
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+        )
+
         setContent {
             CinemaAppTheme {
                 val navController = rememberNavController()
@@ -110,7 +126,7 @@ class MainActivity : ComponentActivity() {
                     } else {
                         // Κανονικό Scaffold με TopBar & BottomBar
                         Scaffold(
-                            topBar = { CinemaTopBar() },
+                            topBar = { CinemaTopBar(movieViewModel) },
                             bottomBar = {
                                 NavigationBar {
                                     items.forEachIndexed { index, item ->
@@ -180,11 +196,10 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CinemaTopBar() {
+fun CinemaTopBar(movieViewModel: MovieViewModel) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     var currentCinema by rememberSaveable { mutableStateOf("Παντελής") }
     val ubuntuMedium = FontFamily(Font(R.font.ubuntu_medium, weight = FontWeight.W500))
-
 
     TopAppBar(
         title = {
@@ -210,17 +225,19 @@ fun CinemaTopBar() {
                     onDismissRequest = { expanded = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("Παντελής") },
-                        onClick = {
-                            currentCinema = "Παντελής"
-                            expanded = false
-                        }
-                    )
-                    DropdownMenuItem(
                         text = { Text("Τεχνόπολις") },
                         onClick = {
                             currentCinema = "Τεχνόπολις"
                             expanded = false
+                            movieViewModel.fetchAllMovies("Texnopolis")
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Παντελής") },
+                        onClick = {
+                            currentCinema = "Παντελής"
+                            expanded = false
+                            movieViewModel.fetchAllMovies("Pantelis")
                         }
                     )
                 }
@@ -228,3 +245,4 @@ fun CinemaTopBar() {
         }
     )
 }
+
