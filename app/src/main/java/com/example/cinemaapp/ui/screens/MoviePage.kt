@@ -280,9 +280,6 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-
-
-
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -298,9 +295,10 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                             ) {
                                 if (info.description.isNotEmpty()) {
                                     Text(
-                                        text = "Yπόθεση",
+                                        text = "Υπόθεση",
                                         style = MaterialTheme.typography.bodyLarge,
-                                        fontFamily = ubuntuMedium
+                                        fontFamily = ubuntuMedium,
+                                        color = MaterialTheme.colorScheme.primary
                                     )
                                     Text(
                                         text = (info.description + "\n"),
@@ -311,7 +309,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                                 if (info.genre.isNotEmpty()) {
                                     Text(
                                         text = buildAnnotatedString {
-                                            withStyle(style = SpanStyle(fontFamily = ubuntuMedium)) {
+                                            withStyle(style = SpanStyle(fontFamily = ubuntuMedium, color = MaterialTheme.colorScheme.primary)) {
                                                 append("Είδος: ")
                                             }
                                             append(info.genre)
@@ -334,11 +332,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                             ) {
                                 Text(
                                     text = buildAnnotatedString {
-                                        withStyle(
-                                            style = SpanStyle(
-                                                fontFamily = ubuntuMedium
-                                            )
-                                        ) {
+                                        withStyle(style = SpanStyle(fontFamily = ubuntuMedium, color = MaterialTheme.colorScheme.primary)) {
                                             append("Πρεμιέρα: ")
                                         }
                                         append(info.premiereDate)
@@ -362,8 +356,10 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                                 Text(
                                     text = "Ώρες προβολής:",
                                     style = MaterialTheme.typography.bodyLarge,
-                                    fontFamily = ubuntuMedium
+                                    fontFamily = ubuntuMedium,
+                                    color = MaterialTheme.colorScheme.primary
                                 )
+
 
                                 Spacer(modifier = Modifier.height(3.dp))
 
@@ -388,10 +384,10 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                                         Text(
                                             text = cinemaName,
                                             style = MaterialTheme.typography.titleMedium,
-                                            fontFamily = ubuntuRegular
+                                            fontFamily = ubuntuMedium
                                         )
 
-                                        entries.take(14).forEach { entry ->
+                                        entries.take(10).forEach { entry ->
                                             val day = entry.getOrNull(0) ?: "-"
                                             val time = entry.getOrNull(1) ?: "-"
                                             val theater = entry.getOrNull(2) ?: "-"
@@ -434,7 +430,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                                 if (info.director.isNotEmpty()) {
                                     Text(
                                         text = buildAnnotatedString {
-                                            withStyle(style = SpanStyle(fontFamily = ubuntuMedium)) {
+                                            withStyle(style = SpanStyle(fontFamily = ubuntuMedium, color = MaterialTheme.colorScheme.primary)) {
                                                 append("Σκηνοθέτης: ")
                                             }
                                             append(info.director)
@@ -448,7 +444,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
 
                                     Text(
                                         text = buildAnnotatedString {
-                                            withStyle(style = SpanStyle(fontFamily = ubuntuMedium)) {
+                                            withStyle(style = SpanStyle(fontFamily = ubuntuMedium, color = MaterialTheme.colorScheme.primary)) {
                                                 append("Ηθοποιοί: ")
                                             }
                                             append(info.cast.joinToString(", "))

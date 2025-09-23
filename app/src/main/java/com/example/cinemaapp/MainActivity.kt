@@ -8,11 +8,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
 import androidx.core.view.WindowCompat
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
@@ -20,11 +22,13 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -196,8 +200,16 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CinemaTopBar(movieViewModel: MovieViewModel) {
+    val cinemaDisplayMap = mapOf(
+        "Texnopolis" to "Τεχνόπολις",
+        "Pantelis" to "Παντελής"
+    )
+
     var expanded by rememberSaveable { mutableStateOf(false) }
-    var currentCinema by rememberSaveable { mutableStateOf("Τεχνόπολις") }
+
+    val selectedCinema by movieViewModel.selectedCinema.collectAsState()
+    val currentCinemaDisplay = cinemaDisplayMap[selectedCinema] ?: selectedCinema
+
     val ubuntuMedium = FontFamily(Font(R.font.ubuntu_medium, weight = FontWeight.W500))
 
     TopAppBar(
@@ -207,12 +219,13 @@ fun CinemaTopBar(movieViewModel: MovieViewModel) {
                     IconButton(onClick = { expanded = true }) {
                         Icon(
                             imageVector = Icons.Filled.KeyboardArrowDown,
-                            contentDescription = "Cinema Choices"
+                            contentDescription = "Cinema Choices",
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
 
                     Text(
-                        text = currentCinema,
+                        text = currentCinemaDisplay,
                         fontFamily = ubuntuMedium,
                         fontWeight = FontWeight.Bold,
                         fontSize = 28.sp
@@ -221,12 +234,13 @@ fun CinemaTopBar(movieViewModel: MovieViewModel) {
 
                 DropdownMenu(
                     expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     DropdownMenuItem(
                         text = { Text("Τεχνόπολις") },
                         onClick = {
-                            currentCinema = "Τεχνόπολις"
                             expanded = false
                             movieViewModel.selectCinema("Texnopolis")
                             movieViewModel.fetchAllMovies("Texnopolis")
@@ -235,7 +249,6 @@ fun CinemaTopBar(movieViewModel: MovieViewModel) {
                     DropdownMenuItem(
                         text = { Text("Παντελής") },
                         onClick = {
-                            currentCinema = "Παντελής"
                             expanded = false
                             movieViewModel.selectCinema("Pantelis")
                             movieViewModel.fetchAllMovies("Pantelis")
@@ -246,4 +259,3 @@ fun CinemaTopBar(movieViewModel: MovieViewModel) {
         }
     )
 }
-
