@@ -33,6 +33,7 @@ import androidx.core.net.toUri
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
@@ -75,12 +76,13 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // TopAppBar
             TopAppBar(
                 title = {
                     Text(
-                        title,
-                        fontFamily = ubuntuMedium
+                        text = title,
+                        fontFamily = ubuntuMedium,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                 },
                 navigationIcon = {
@@ -92,6 +94,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                     }
                 }
             )
+
 
             Column(
                 modifier = Modifier
