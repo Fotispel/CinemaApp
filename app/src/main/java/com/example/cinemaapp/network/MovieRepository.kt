@@ -33,7 +33,7 @@ class MovieRepository {
                 )
             }
         } else if (url.contains("texnopolis.net")) {
-            Log.d ("MovieRepository", "Fetching movies from Texnopolis")
+            Log.d("MovieRepository", "Fetching movies from Texnopolis")
             val doc = Jsoup.connect(url).userAgent("Mozilla/5.0").get()
             val movies = mutableListOf<Movie>()
 
@@ -60,7 +60,10 @@ class MovieRepository {
             }
 
             val comingSoonMovies = doc.select("section.comingSoon_container article.upcoming_movie")
-            Log.d("MovieRepository", "Found coming soon sections: " + doc.select("section[class*=comingSoon_container]").size)
+            Log.d(
+                "MovieRepository",
+                "Found coming soon sections: " + doc.select("section[class*=comingSoon_container]").size
+            )
 
             comingSoonMovies.forEach { element ->
                 val title = element.selectFirst("h3.movieTitle")?.text()?.trim() ?: "Unknown"
@@ -147,8 +150,10 @@ class MovieRepository {
 
                 val showtime = doc.select("div.ce_dma_eg_1 ul li.text, div.ce_dma_eg_2 ul li.text")
                     .mapNotNull { li ->
-                        val day = li.selectFirst("span.label")?.text()?.trim() ?: return@mapNotNull null
-                        val time = li.selectFirst("span.value")?.text()?.trim() ?: return@mapNotNull null
+                        val day =
+                            li.selectFirst("span.label")?.text()?.trim() ?: return@mapNotNull null
+                        val time =
+                            li.selectFirst("span.value")?.text()?.trim() ?: return@mapNotNull null
                         listOf(day, time)
                     }
 
@@ -219,19 +224,30 @@ class MovieRepository {
                 val showtimeElements = doc.select("div.movieShows_day")
                 val showtime = mutableListOf<List<String>>()
 
-                showtimeElements.forEach { dayDiv ->
-                    val day = dayDiv.selectFirst("h3")?.text()?.trim() ?: return@forEach
-                    dayDiv.select("div.movieShows_day_theater").forEach { theaterDiv ->
-                        var theater = theaterDiv.selectFirst("h4")?.text()?.trim() ?: "-"
-                        theater = Regex("^(.*?Αίθουσα\\s*\\S+)").find(theater)?.value ?: theater
 
-                        val times = theaterDiv.select("div.movieShows_showTimes span")
-                            .joinToString(", ") { it.text().trim() }
+                for (article in doc.select("article.movieBox")) {
 
-                        showtime.add(listOf(day, times, theater))
+                    val movieTitleToFind =
+                        article.selectFirst("div.movie_info__details h2.movieTitle")?.text()?.trim()
+                            ?: continue
+
+                    if (title != movieTitleToFind) continue
+
+                    val showtimeElements = article.select("div.movieShows_day")
+
+                    showtimeElements.forEach { dayDiv ->
+                        val day = dayDiv.selectFirst("h3")?.text()?.trim() ?: return@forEach
+                        dayDiv.select("div.movieShows_day_theater").forEach { theaterDiv ->
+                            var theater = theaterDiv.selectFirst("h4")?.text()?.trim() ?: "-"
+                            theater = Regex("^(.*?Αίθουσα\\s*\\S+)").find(theater)?.value ?: theater
+
+                            val times = theaterDiv.select("div.movieShows_showTimes span")
+                                .joinToString(", ") { it.text().trim() }
+
+                            showtime.add(listOf(day, times, theater))
+                        }
                     }
                 }
-
 
                 Movie(
                     basicInfo = MovieBasicInfo(title, posterUrl, movieUrl),
