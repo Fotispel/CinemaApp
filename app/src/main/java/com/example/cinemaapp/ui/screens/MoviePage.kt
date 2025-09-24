@@ -342,7 +342,6 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                             }
                         }
                     }
-                    Log.d("MoviePage", "Premiere Date: ${info?.premiereDate}")
 
                     if (!info?.showtime.isNullOrEmpty()) {
                         Card(
