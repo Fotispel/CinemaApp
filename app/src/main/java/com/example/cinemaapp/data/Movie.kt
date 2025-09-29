@@ -6,8 +6,9 @@ data class MovieBasicInfo(
     val title: String = "",
     val posterUrl: String = "",
     val MovieURL: String = "",
-    val isPlaying: Boolean = true
-)
+    val isPlaying: Boolean = true,
+    val showtime: List<List<String>> = emptyList() // Only for Odeon
+    )
 
 data class FullMovieInfo(
     val title: String = "",

@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class MovieViewModel(initialCinema: String = "Texnopolis") : ViewModel() {
+class MovieViewModel(initialCinema: String = "Odeon") : ViewModel() {
 
     private val repository = MovieRepository()
 
@@ -57,7 +57,13 @@ class MovieViewModel(initialCinema: String = "Texnopolis") : ViewModel() {
                     _nowPlayingMovies.value = nowPlayingList
                     _comingSoonMovies.value = comingSoonList
                     _movies.value = allMovies
-                } else {
+                } else if (cinema == "Odeon") {
+                    val nowPlayingList = repository.fetchMovies("https://flix.gr/theatres/61")
+                    _nowPlayingMovies.value = nowPlayingList
+                    _comingSoonMovies.value = emptyList()
+                    _movies.value = nowPlayingList
+                }
+                else {
                     Log.w("MovieViewModel", "Unknown cinema: $cinema")
                 }
             } catch (e: Exception) {
@@ -81,6 +87,7 @@ class MovieViewModel(initialCinema: String = "Texnopolis") : ViewModel() {
                         val allMovies = repository.fetchMovies("https://www.texnopolis.net/movies/")
                         allMovies.filter { it.basicInfo.isPlaying }
                     }
+                    "Odeon" -> repository.fetchMovies("https://flix.gr/theatres/61")
                     else -> emptyList()
                 }
                 _nowPlayingMovies.value = nowPlayingList
@@ -115,6 +122,9 @@ class MovieViewModel(initialCinema: String = "Texnopolis") : ViewModel() {
     fun fetchDetailedMovieInfo(movieUrl: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val detailedMovie = repository.fetchDetailedMovieInfo(movieUrl)
+
+            Log.d("MovieViewModel", "Movie info: $detailedMovie")
+
             if (detailedMovie != null) {
                 val currentNowPlaying = _nowPlayingMovies.value.toMutableList()
                 val nowPlayingIndex = currentNowPlaying.indexOfFirst { it.basicInfo.MovieURL == detailedMovie.basicInfo.MovieURL }

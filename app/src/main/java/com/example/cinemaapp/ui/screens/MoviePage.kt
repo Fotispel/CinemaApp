@@ -48,6 +48,8 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
 
     val movie = movies.find { it.basicInfo.MovieURL == movieUrl }
 
+    Log.d("MoviePage", "Rendering MoviePage for URL: $movieUrl")
+
     val systemUiController = rememberSystemUiController()
 
     LaunchedEffect(Unit, movieUrl) {
@@ -195,7 +197,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                         ) {
                             val duration =
                                 movie?.fullInfo?.duration
-                                    ?: "--"
+                                    ?: "-"
                             Box(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier.fillMaxSize()
@@ -220,25 +222,38 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier.fillMaxSize()
                             ) {
+                                var projectionRooms = "-"
                                 if (movie?.basicInfo?.MovieURL?.contains("cinelandpantelis.gr") == true) {
-                                    val room = movie.fullInfo?.projectionRoom
+                                    projectionRooms = movie.fullInfo?.projectionRoom
                                         ?.trim()
                                         ?: "-"
 
-                                    AutoResizeText(
-                                        text = room,
-                                        fontFamily = ubuntuMedium
-                                    )
-                                } else {
+                                } else if (movie?.basicInfo?.MovieURL?.contains("texnopolis.net") == true) {
                                     val roomRaw = movie?.fullInfo?.projectionRoom
                                     val room = roomRaw?.substringBefore("Αίθουσα")?.trim()
-                                    val roomDisplay = if (room.isNullOrBlank()) "-" else room
+                                    projectionRooms = if (room.isNullOrBlank()) "-" else room
 
-                                    AutoResizeText(
-                                        text = roomDisplay,
-                                        fontFamily = ubuntuMedium
-                                    )
+                                } else if (movie?.basicInfo?.MovieURL?.contains("flix.gr") == true) {
+                                    val rooms = info?.showtime?.map { entry ->
+                                        val raw = entry.getOrNull(0) ?: ""
+                                        Regex("ΑΙΘΟΥΣΑ\\s+(\\d+)").findAll(raw)
+                                            .map { it.groupValues[1].toInt() }
+                                            .toList()
+                                    }?.flatten()
+                                        ?.distinct()
+                                        ?.sorted()
+
+                                    projectionRooms = when {
+                                        rooms == null || rooms.isEmpty() -> "-"
+                                        rooms.size == 1 -> "Αίθουσα ${rooms.first()}"
+                                        else -> "Αίθουσες ${rooms.joinToString(", ")}"
+                                    }
                                 }
+
+                                AutoResizeText(
+                                    text = projectionRooms,
+                                    fontFamily = ubuntuMedium
+                                )
                             }
                         }
                     }
@@ -260,7 +275,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                                 context.startActivity(intent)
                             }
                         },
-                        shape = MaterialTheme.shapes.extraLarge, // pill shape
+                        shape = MaterialTheme.shapes.extraLarge,
                         modifier = Modifier.weight(1f)
                     ) {
                         Text("Trailer")
@@ -312,7 +327,12 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                                 if (info.genre.isNotEmpty()) {
                                     Text(
                                         text = buildAnnotatedString {
-                                            withStyle(style = SpanStyle(fontFamily = ubuntuMedium, color = MaterialTheme.colorScheme.primary)) {
+                                            withStyle(
+                                                style = SpanStyle(
+                                                    fontFamily = ubuntuMedium,
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            ) {
                                                 append("Είδος: ")
                                             }
                                             append(info.genre)
@@ -335,7 +355,12 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                             ) {
                                 Text(
                                     text = buildAnnotatedString {
-                                        withStyle(style = SpanStyle(fontFamily = ubuntuMedium, color = MaterialTheme.colorScheme.primary)) {
+                                        withStyle(
+                                            style = SpanStyle(
+                                                fontFamily = ubuntuMedium,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        ) {
                                             append("Πρεμιέρα: ")
                                         }
                                         append(info.premiereDate)
@@ -376,7 +401,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                                             fontFamily = ubuntuRegular
                                         )
                                     }
-                                } else {
+                                } else if (movie.basicInfo.MovieURL.contains("texnopolis.net")) {
                                     val groupedByCinema = info.showtime.groupBy { entry ->
                                         val theaterFull = entry.getOrNull(2) ?: "-"
                                         theaterFull.substringBefore("Αίθουσα").trim()
@@ -415,6 +440,15 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
 
                                         Spacer(modifier = Modifier.height(8.dp))
                                     }
+                                } else if (movie.basicInfo.MovieURL.contains("flix.gr")) {
+                                    info.showtime.forEach { entry ->
+                                        val dateAndTime = entry.getOrNull(0) ?: "-"
+                                        Text(
+                                            text = dateAndTime,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            fontFamily = ubuntuRegular
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -432,7 +466,12 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                                 if (info.director.isNotEmpty()) {
                                     Text(
                                         text = buildAnnotatedString {
-                                            withStyle(style = SpanStyle(fontFamily = ubuntuMedium, color = MaterialTheme.colorScheme.primary)) {
+                                            withStyle(
+                                                style = SpanStyle(
+                                                    fontFamily = ubuntuMedium,
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            ) {
                                                 append("Σκηνοθέτης: ")
                                             }
                                             append(info.director)
@@ -446,7 +485,12 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
 
                                     Text(
                                         text = buildAnnotatedString {
-                                            withStyle(style = SpanStyle(fontFamily = ubuntuMedium, color = MaterialTheme.colorScheme.primary)) {
+                                            withStyle(
+                                                style = SpanStyle(
+                                                    fontFamily = ubuntuMedium,
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            ) {
                                                 append("Ηθοποιοί: ")
                                             }
                                             append(info.cast.joinToString(", "))

@@ -87,6 +87,34 @@ class MovieRepository {
             }
 
             return movies
+        } else if (url.contains("flix.gr")) {
+            val doc = Jsoup.connect(url).userAgent("Mozilla/5.0").get()
+            val movieElements = doc.select("ul.list > li._subtle-border-bottom")
+
+            return movieElements.map { element ->
+                val title = element.selectFirst("h2 a .title")?.text()?.trim() ?: "Unknown"
+                val posterUrl = element.selectFirst("img")?.attr("src") ?: ""
+
+                val relativeUrl = element.selectFirst("h2 a")?.attr("href") ?: ""
+                val movieUrl = if (relativeUrl.startsWith("http")) relativeUrl else "https://flix.gr$relativeUrl"
+
+                // Προβολές
+                val showtimes = element.select("dl.timetable dt, dl.timetable dd").map {
+                    it.text().trim()
+                }.chunked(2).map { (room, time) -> "$room: $time" } // room + time
+
+                Movie(
+                    basicInfo = MovieBasicInfo(
+                        title = title,
+                        posterUrl = posterUrl,
+                        MovieURL = movieUrl,
+                        isPlaying = true,
+                        showtime = showtimes.map { listOf(it) }
+                    )
+                )
+            }
+        } else {
+            Log.w("MovieRepository", "Unknown URL: $url")
         }
 
         return emptyList()
@@ -273,7 +301,70 @@ class MovieRepository {
             } catch (e: Exception) {
                 null
             }
+        } else if (movieUrl.contains("flix.gr")) {
+            return try {
+                val doc = Jsoup.connect(movieUrl).userAgent("Mozilla/5.0").get()
+
+                val basicMovie = fetchMovies("https://flix.gr/theatres/61")
+                    .find { it.basicInfo.MovieURL == movieUrl }
+
+
+                // Τίτλος και poster
+                val title = doc.selectFirst("h1, h2.title")?.text()?.trim() ?: "Unknown"
+                val posterUrl = doc.selectFirst("div.w-sm-20 img.img-fluid")?.attr("src") ?: ""
+
+
+                // Περιγραφή
+                val description = doc.selectFirst("meta[name=description]")?.attr("content")?.trim() ?: ""
+
+                // Σκηνοθέτης
+                val director = doc.select("li:contains(Σκηνοθεσία)")?.firstOrNull()?.ownText()?.trim() ?: ""
+
+                // Πρωταγωνιστούν
+                val castText = doc.select("li:contains(Πρωταγωνιστούν)")?.firstOrNull()?.ownText()?.trim() ?: ""
+                val cast = castText.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+
+                // Διάρκεια
+                val duration = doc.select("li:contains(Διάρκεια)")?.firstOrNull()?.ownText()?.trim() ?: "-"
+
+                val trailerUrl = doc.selectFirst("iframe[src*='youtube.com']")?.attr("src") ?: ""
+
+                val showtime = basicMovie?.basicInfo?.showtime ?: emptyList()
+
+                val premiereDate = doc.selectFirst("meta[name=publish-date]")?.attr("content")?.substringBefore("T") ?: ""
+
+                Movie(
+                    basicInfo = MovieBasicInfo(
+                        title = title,
+                        posterUrl = posterUrl,
+                        MovieURL = movieUrl,
+                        isPlaying = true,
+                        showtime = showtime
+                    ),
+                    fullInfo = FullMovieInfo(
+                        title = title,
+                        posterUrl = posterUrl,
+                        duration = duration,
+                        genre = "",
+                        ageRating = "-",
+                        projectionRoom = "",
+                        description = description,
+                        director = director,
+                        cast = cast,
+                        showtime = showtime,
+                        trailerUrl = trailerUrl,
+                        premiereDate = premiereDate
+                    )
+                )
+
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
         }
+
+
         return null
     }
 }

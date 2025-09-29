@@ -44,30 +44,37 @@ fun ComingSoonScreen(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            contentPadding = PaddingValues(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier
-                .nestedScroll(pullToRefreshState.nestedScrollConnection)
-                .fillMaxSize()
-        ) {
-            items(
-                comingSoonMovies,
-                key = { movie ->
-                    movie.basicInfo.posterUrl.ifEmpty { movie.basicInfo.title }
-                },
-                contentType = { _ -> "movie" }
-            ) { movie ->
-                MovieQuickViewItem(
-                    basicInfo = movie.basicInfo,
-                    navController = navController,
-                    onClick = { clickedMovie ->
-                        val encodedUrl = Uri.encode(clickedMovie.MovieURL)
-                        navController.navigate("movie_page/$encodedUrl")
-                    }
-                )
+        if (comingSoonMovies.isEmpty() && !isLoading) {
+            androidx.compose.material3.Text(
+                text = "No movies coming soon 🎬",
+                modifier = Modifier.align(Alignment.Center)
+            )
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                contentPadding = PaddingValues(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .nestedScroll(pullToRefreshState.nestedScrollConnection)
+                    .fillMaxSize()
+            ) {
+                items(
+                    comingSoonMovies,
+                    key = { movie ->
+                        movie.basicInfo.posterUrl.ifEmpty { movie.basicInfo.title }
+                    },
+                    contentType = { _ -> "movie" }
+                ) { movie ->
+                    MovieQuickViewItem(
+                        basicInfo = movie.basicInfo,
+                        navController = navController,
+                        onClick = { clickedMovie ->
+                            val encodedUrl = Uri.encode(clickedMovie.MovieURL)
+                            navController.navigate("movie_page/$encodedUrl")
+                        }
+                    )
+                }
             }
         }
 

@@ -118,8 +118,12 @@ class MainActivity : ComponentActivity() {
                             }
 
                             composable("movie_page/{movieUrl}") { backStackEntry ->
-                                val movieUrl = backStackEntry.arguments?.getString("movieUrl")
+                                var movieUrl = backStackEntry.arguments?.getString("movieUrl")
                                     ?.let { Uri.decode(it) } ?: ""
+
+                                if (movieUrl.startsWith("/cinema"))
+                                    movieUrl = "https://flix.gr$movieUrl"
+
                                 MoviePage(
                                     movieUrl = movieUrl,
                                     navController = navController,
@@ -182,6 +186,7 @@ class MainActivity : ComponentActivity() {
                                 composable("movie_page/{movieUrl}") { backStackEntry ->
                                     val movieUrl = backStackEntry.arguments?.getString("movieUrl")
                                         ?.let { Uri.decode(it) } ?: ""
+
                                     MoviePage(
                                         movieUrl = movieUrl,
                                         navController = navController,
@@ -202,7 +207,8 @@ class MainActivity : ComponentActivity() {
 fun CinemaTopBar(movieViewModel: MovieViewModel) {
     val cinemaDisplayMap = mapOf(
         "Texnopolis" to "Τεχνόπολις",
-        "Pantelis" to "Παντελής"
+        "Pantelis" to "Παντελής",
+        "Odeon" to "Odeon"
     )
 
     var expanded by rememberSaveable { mutableStateOf(false) }
@@ -238,6 +244,14 @@ fun CinemaTopBar(movieViewModel: MovieViewModel) {
                     modifier = Modifier
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                 ) {
+                    DropdownMenuItem(
+                        text = { Text("Odeon") },
+                        onClick = {
+                            expanded = false
+                            movieViewModel.selectCinema("Odeon")
+                            movieViewModel.fetchAllMovies("Odeon")
+                        }
+                    )
                     DropdownMenuItem(
                         text = { Text("Τεχνόπολις") },
                         onClick = {
