@@ -73,17 +73,17 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                     }
                 },
                 colors = TopAppBarDefaults.smallTopAppBarColors(
-                    containerColor = Color.Transparent, // Κάνει διαφανές το background
+                    containerColor = Color.Transparent,
                     scrolledContainerColor = Color.Transparent
                 ),
                 scrollBehavior = scrollBehavior
             )
         },
-        contentWindowInsets = WindowInsets(0.dp), // Αφαιρεί το default padding για gesture/status bar
+        contentWindowInsets = WindowInsets(0.dp),
     ) { innerPadding ->
         Column(
             modifier = Modifier
-                .padding(innerPadding) // τώρα δεν έχει επιπλέον padding
+                .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -185,7 +185,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                                     ?: "-"
 
                             } else if (movie?.basicInfo?.MovieURL?.contains("texnopolis.net") == true) {
-                                val roomRaw = movie?.fullInfo?.projectionRoom
+                                val roomRaw = movie.fullInfo?.projectionRoom
                                 val room = roomRaw?.substringBefore("Αίθουσα")?.trim()
                                 projectionRooms = if (room.isNullOrBlank()) "-" else room
 
@@ -249,23 +249,23 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Description, Genre, Premiere, Showtime, Director, Cast
             Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             ) {
                 info?.let { movieInfo ->
-                    if (!movieInfo.description.isNullOrEmpty() || !movieInfo.genre.isNullOrEmpty()) {
+                    if (movieInfo.description.isNotEmpty() || movieInfo.genre.isNotEmpty()) {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
                             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                if (!movieInfo.description.isNullOrEmpty()) {
+                                if (movieInfo.description.isNotEmpty()) {
                                     Text("Υπόθεση", style = MaterialTheme.typography.bodyLarge, fontFamily = ubuntuMedium, color = MaterialTheme.colorScheme.primary)
                                     Text(movieInfo.description, style = MaterialTheme.typography.bodyLarge, fontFamily = ubuntuItalic)
                                 }
-                                if (!movieInfo.genre.isNullOrEmpty()) {
+                                if (movieInfo.genre.isNotEmpty()) {
+                                    Spacer(modifier = Modifier.height(8.dp))
                                     Text(buildAnnotatedString {
                                         withStyle(SpanStyle(fontFamily = ubuntuMedium, color = MaterialTheme.colorScheme.primary)) {
                                             append("Είδος: ")
@@ -277,58 +277,159 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                         }
                     }
 
-                    if (!movieInfo.premiereDate.isNullOrEmpty()) {
+                    if (info.premiereDate.isNotEmpty()) {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(buildAnnotatedString {
-                                    withStyle(SpanStyle(fontFamily = ubuntuMedium, color = MaterialTheme.colorScheme.primary)) {
-                                        append("Πρεμιέρα: ")
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    text = buildAnnotatedString {
+                                        withStyle(
+                                            style = SpanStyle(
+                                                fontFamily = ubuntuMedium,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        ) {
+                                            append("Πρεμιέρα: ")
+                                        }
+                                        append(info.premiereDate)
+                                    },
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+                        }
+                    }
+
+                    if (info.showtime.isNotEmpty()) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    text = "Ώρες προβολής:",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontFamily = ubuntuMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+
+
+                                Spacer(modifier = Modifier.height(3.dp))
+
+                                if (movie.basicInfo.MovieURL.contains("cinelandpantelis.gr")) {
+                                    info.showtime.forEach { entry ->
+                                        // entry[0] = day, entry[1] = time
+                                        val day = entry.getOrNull(0) ?: "-"
+                                        val time = entry.getOrNull(1) ?: "-"
+                                        Text(
+                                            text = "$day $time",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            fontFamily = ubuntuRegular
+                                        )
                                     }
-                                    append(movieInfo.premiereDate)
-                                }, style = MaterialTheme.typography.bodyLarge)
-                            }
-                        }
-                    }
+                                } else if (movie.basicInfo.MovieURL.contains("texnopolis.net")) {
+                                    val groupedByCinema = info.showtime.groupBy { entry ->
+                                        val theaterFull = entry.getOrNull(2) ?: "-"
+                                        theaterFull.substringBefore("Αίθουσα").trim()
+                                    }
 
-                    if (!movieInfo.showtime.isNullOrEmpty()) {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text("Ώρες προβολής:", style = MaterialTheme.typography.bodyLarge, fontFamily = ubuntuMedium, color = MaterialTheme.colorScheme.primary)
-                                movieInfo.showtime.forEach { entry ->
-                                    val dateTime = entry.getOrNull(0) ?: "-"
-                                    Text(dateTime, style = MaterialTheme.typography.bodyLarge, fontFamily = ubuntuRegular)
+                                    groupedByCinema.forEach { (cinemaName, entries) ->
+                                        Text(
+                                            text = cinemaName,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontFamily = ubuntuMedium
+                                        )
+
+                                        entries.take(10).forEach { entry ->
+                                            val day = entry.getOrNull(0) ?: "-"
+                                            val time = entry.getOrNull(1) ?: "-"
+                                            val theater = entry.getOrNull(2) ?: "-"
+                                            val theaterOnly =
+                                                theater.substringAfterLast("Αίθουσα").trim()
+                                            val theaterFormatted =
+                                                if (theaterOnly.isNotEmpty()) "Αίθουσα $theaterOnly" else "-"
+
+                                            if (!theaterFormatted.contains("Θερινό")) {
+                                                Text(
+                                                    text = " $day $time ($theaterFormatted)",
+                                                    style = MaterialTheme.typography.bodyLarge,
+                                                    fontFamily = ubuntuRegular
+                                                )
+                                            } else {
+                                                Text(
+                                                    text = " $day $time",
+                                                    style = MaterialTheme.typography.bodyLarge,
+                                                    fontFamily = ubuntuRegular
+                                                )
+                                            }
+                                        }
+
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                    }
+                                } else if (movie.basicInfo.MovieURL.contains("flix.gr")) {
+                                    info.showtime.forEach { entry ->
+                                        val dateAndTime = entry.getOrNull(0) ?: "-"
+                                        Text(
+                                            text = dateAndTime,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            fontFamily = ubuntuRegular
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
 
-                    if (!movieInfo.director.isNullOrEmpty() || !movieInfo.cast.isNullOrEmpty()) {
+                    if (info.director.isNotEmpty() || info.cast.isNotEmpty()) {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
-                            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                if (!movieInfo.director.isNullOrEmpty()) {
-                                    Text(buildAnnotatedString {
-                                        withStyle(SpanStyle(fontFamily = ubuntuMedium, color = MaterialTheme.colorScheme.primary)) {
-                                            append("Σκηνοθέτης: ")
-                                        }
-                                        append(movieInfo.director)
-                                    }, style = MaterialTheme.typography.bodyLarge)
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                if (info.director.isNotEmpty()) {
+                                    Text(
+                                        text = buildAnnotatedString {
+                                            withStyle(
+                                                style = SpanStyle(
+                                                    fontFamily = ubuntuMedium,
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            ) {
+                                                append("Σκηνοθέτης: ")
+                                            }
+                                            append(info.director)
+                                        },
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
                                 }
-                                if (!movieInfo.cast.isNullOrEmpty()) {
-                                    Text(buildAnnotatedString {
-                                        withStyle(SpanStyle(fontFamily = ubuntuMedium, color = MaterialTheme.colorScheme.primary)) {
-                                            append("Ηθοποιοί: ")
-                                        }
-                                        append(movieInfo.cast.joinToString(", "))
-                                    }, style = MaterialTheme.typography.bodyLarge)
+
+                                if (info.cast.isNotEmpty()) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+
+                                    Text(
+                                        text = buildAnnotatedString {
+                                            withStyle(
+                                                style = SpanStyle(
+                                                    fontFamily = ubuntuMedium,
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            ) {
+                                                append("Ηθοποιοί: ")
+                                            }
+                                            append(info.cast.joinToString(", "))
+                                        },
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
                                 }
                             }
                         }
