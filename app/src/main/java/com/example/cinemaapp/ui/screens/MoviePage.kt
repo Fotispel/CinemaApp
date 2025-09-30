@@ -135,19 +135,26 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                         val age = movie?.fullInfo?.ageRating?.let {
                             when {
                                 it.contains("18") -> "Κ18"
+                                it.contains("δεκαοκτώ") -> "Κ18"
+                                it.contains("16") -> "Κ16"
+                                it.contains("δεκαέξι") -> "Κ16"
                                 it.contains("δεκαπέντε") -> "Κ15"
+                                it.contains("15") -> "Κ15"
+                                it.contains("12") -> "Κ12"
                                 it.contains("δώδεκα") -> "Κ12"
                                 it.contains("οκτώ") -> "Κ8"
+                                it.contains(" 8") -> "Κ8"
                                 it.contains("όλους") -> "Κ"
+                                it == " Κατάλληλο" -> "Κ"
+                                it == "Κατάλληλο" -> "Κ"
                                 else -> it
                             }
                         } ?: "-"
+
                         Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                            Text(
+                            AutoResizeText(
                                 text = age,
-                                style = MaterialTheme.typography.headlineMedium,
                                 fontFamily = ubuntuMedium,
-                                textAlign = TextAlign.Center
                             )
                         }
                     }
@@ -158,11 +165,9 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                            Text(
+                            AutoResizeText(
                                 text = movie?.fullInfo?.duration ?: "-",
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontFamily = ubuntuMedium,
-                                textAlign = TextAlign.Center
+                                fontFamily = ubuntuMedium
                             )
                         }
                     }
