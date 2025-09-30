@@ -8,13 +8,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.foundation.background
-import androidx.core.view.WindowCompat
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
@@ -22,23 +23,22 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import androidx.core.view.WindowCompat
 import com.example.cinemaapp.ui.screens.NowPlayingScreen
 import com.example.cinemaapp.ui.screens.ComingSoonScreen
 import com.example.cinemaapp.ui.screens.MoviePage
 import com.example.cinemaapp.ui.theme.CinemaAppTheme
 import com.example.cinemaapp.viewmodel.MovieViewModel
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 
 // Data class για τα Bottom Navigation Items
 data class BottomNavigationItem(
@@ -52,6 +52,7 @@ class MainActivity : ComponentActivity() {
 
     private val movieViewModel: MovieViewModel by viewModels()
 
+    @OptIn(ExperimentalAnimationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -89,65 +90,31 @@ class MainActivity : ComponentActivity() {
                     )
                 )
 
-
-                var selectedItem by rememberSaveable { mutableIntStateOf(0) }
-
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    if (currentRoute?.startsWith("movie_page") == true) {
-                        NavHost(
-                            navController = navController,
-                            startDestination = "now_playing",
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            composable("now_playing") {
-                                NowPlayingScreen(
-                                    modifier = Modifier.fillMaxSize(),
-                                    viewModel = movieViewModel,
-                                    navController = navController
-                                )
+                    Scaffold(
+                        topBar = {
+                            if (currentRoute?.startsWith("movie_page") != true) {
+                                CinemaTopBar(movieViewModel)
                             }
-                            composable("coming_soon") {
-                                ComingSoonScreen(
-                                    modifier = Modifier.fillMaxSize(),
-                                    viewModel = movieViewModel,
-                                    navController = navController
-                                )
-                            }
-
-                            composable("movie_page/{movieUrl}") { backStackEntry ->
-                                var movieUrl = backStackEntry.arguments?.getString("movieUrl")
-                                    ?.let { Uri.decode(it) } ?: ""
-
-                                if (movieUrl.startsWith("/cinema"))
-                                    movieUrl = "https://flix.gr$movieUrl"
-
-                                MoviePage(
-                                    movieUrl = movieUrl,
-                                    navController = navController,
-                                    viewModel = movieViewModel
-                                )
-                            }
-                        }
-                    } else {
-                        Scaffold(
-                            topBar = { CinemaTopBar(movieViewModel) },
-                            bottomBar = {
+                        },
+                        bottomBar = {
+                            if (currentRoute?.startsWith("movie_page") != true) {
                                 NavigationBar {
                                     items.forEachIndexed { index, item ->
+                                        val isSelected = currentRoute == item.route
                                         NavigationBarItem(
                                             icon = {
                                                 Icon(
-                                                    imageVector = if (selectedItem == index) item.selectedIcon else item.unselectedIcon,
+                                                    imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
                                                     contentDescription = item.title
                                                 )
                                             },
                                             label = { Text(item.title) },
-                                            selected = selectedItem == index,
+                                            selected = isSelected,
                                             onClick = {
-                                                selectedItem = index
                                                 navController.navigate(item.route) {
                                                     popUpTo(navController.graph.startDestinationId) {
                                                         saveState = true
@@ -160,39 +127,68 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             }
-                        ) { innerPadding ->
-                            NavHost(
-                                navController = navController,
-                                startDestination = "now_playing",
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(innerPadding)
+                        }
+                    ) { innerPadding ->
+                        AnimatedNavHost(
+                            navController = navController,
+                            startDestination = "now_playing",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(innerPadding)
+                        ) {
+                            composable(
+                                route = "now_playing",
+                                enterTransition = {
+                                    slideIntoContainer(
+                                        AnimatedContentTransitionScope.SlideDirection.Right,
+                                        animationSpec = tween(300)
+                                    )
+                                },
+                                exitTransition = {
+                                    slideOutOfContainer(
+                                        AnimatedContentTransitionScope.SlideDirection.Left,
+                                        animationSpec = tween(300)
+                                    )
+                                }
                             ) {
-                                composable("now_playing") {
-                                    NowPlayingScreen(
-                                        modifier = Modifier.fillMaxSize(),
-                                        viewModel = movieViewModel,
-                                        navController = navController
-                                    )
-                                }
-                                composable("coming_soon") {
-                                    ComingSoonScreen(
-                                        modifier = Modifier.fillMaxSize(),
-                                        viewModel = movieViewModel,
-                                        navController = navController
-                                    )
-                                }
+                                NowPlayingScreen(
+                                    modifier = Modifier.fillMaxSize(),
+                                    viewModel = movieViewModel,
+                                    navController = navController
+                                )
+                            }
 
-                                composable("movie_page/{movieUrl}") { backStackEntry ->
-                                    val movieUrl = backStackEntry.arguments?.getString("movieUrl")
-                                        ?.let { Uri.decode(it) } ?: ""
-
-                                    MoviePage(
-                                        movieUrl = movieUrl,
-                                        navController = navController,
-                                        viewModel = movieViewModel
+                            composable(
+                                route = "coming_soon",
+                                enterTransition = {
+                                    slideIntoContainer(
+                                        AnimatedContentTransitionScope.SlideDirection.Left,
+                                        animationSpec = tween(300)
+                                    )
+                                },
+                                exitTransition = {
+                                    slideOutOfContainer(
+                                        AnimatedContentTransitionScope.SlideDirection.Right,
+                                        animationSpec = tween(300)
                                     )
                                 }
+                            ) {
+                                ComingSoonScreen(
+                                    modifier = Modifier.fillMaxSize(),
+                                    viewModel = movieViewModel,
+                                    navController = navController
+                                )
+                            }
+
+                            composable("movie_page/{movieUrl}") { backStackEntry ->
+                                val movieUrl = backStackEntry.arguments?.getString("movieUrl")
+                                    ?.let { Uri.decode(it) } ?: ""
+
+                                MoviePage(
+                                    movieUrl = movieUrl,
+                                    navController = navController,
+                                    viewModel = movieViewModel
+                                )
                             }
                         }
                     }
