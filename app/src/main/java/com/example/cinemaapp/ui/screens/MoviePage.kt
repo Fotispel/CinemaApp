@@ -319,12 +319,13 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                                         color = MaterialTheme.colorScheme.primary
                                     )
                                     Text(
-                                        text = (info.description + "\n"),
+                                        text = (info.description),
                                         style = MaterialTheme.typography.bodyLarge,
                                         fontFamily = ubuntuItalic
                                     )
                                 }
                                 if (info.genre.isNotEmpty()) {
+                                    Spacer(modifier = Modifier.height(8.dp))
                                     Text(
                                         text = buildAnnotatedString {
                                             withStyle(
