@@ -1,6 +1,6 @@
-# Cinema App
+# CineCrete
 
-CinemaApp is an Android app built with Kotlin and Jetpack Compose that allows users to browse and explore movies currently playing in 3 cretan cinemas.
+CineCrete is an Android app built with Kotlin and Jetpack Compose that allows users to browse and explore movies currently playing in 3 cretan cinemas.
 It shows info about the movies in clean and modern Material Design 3 interface.
 
 ## Features
