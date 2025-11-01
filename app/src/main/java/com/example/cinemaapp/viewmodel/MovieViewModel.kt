@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MovieViewModel(initialCinema: String = "Odeon") : ViewModel() {
 
@@ -36,36 +37,47 @@ class MovieViewModel(initialCinema: String = "Odeon") : ViewModel() {
 
     fun selectCinema(cinema: String) {
         _selectedCinema.value = cinema
+
+        _nowPlayingMovies.value = emptyList()
+        _comingSoonMovies.value = emptyList()
+        _movies.value = emptyList()
+
+        _isLoading.value = true
+
+        fetchAllMovies(cinema)
     }
 
 
+
     fun fetchAllMovies(cinema: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _isLoading.value = true
             try {
-                if (cinema == "Pantelis") {
-                    val nowPlayingList = repository.fetchMovies("https://cinelandpantelis.gr/proballontai.html")
-                    val comingSoonList = repository.fetchMovies("https://cinelandpantelis.gr/prosechos.html")
-                    _nowPlayingMovies.value = nowPlayingList
-                    _comingSoonMovies.value = comingSoonList
-                    _movies.value = nowPlayingList + comingSoonList
-                } else if (cinema == "Texnopolis") {
-                    val allMovies = repository.fetchMovies("https://www.texnopolis.net/movies/")
-                    val nowPlayingList = allMovies.filter { it.basicInfo.isPlaying }
-                    val comingSoonList = allMovies.filter { !it.basicInfo.isPlaying }
+                val (nowPlayingList, comingSoonList) = withContext(Dispatchers.IO) {
+                    when (cinema) {
+                        "Pantelis" -> {
+                            val now = repository.fetchMovies("https://cinelandpantelis.gr/proballontai.html")
+                            val soon = repository.fetchMovies("https://cinelandpantelis.gr/prosechos.html")
+                            now to soon
+                        }
+                        "Texnopolis" -> {
+                            val all = repository.fetchMovies("https://www.texnopolis.net/movies/")
+                            val now = all.filter { it.basicInfo.isPlaying }
+                            val soon = all.filter { !it.basicInfo.isPlaying }
+                            now to soon
+                        }
+                        "Odeon" -> {
+                            val now = repository.fetchMovies("https://flix.gr/theatres/61")
+                            now to emptyList()
+                        }
+                        else -> emptyList<Movie>() to emptyList()
+                    }
+                }
 
-                    _nowPlayingMovies.value = nowPlayingList
-                    _comingSoonMovies.value = comingSoonList
-                    _movies.value = allMovies
-                } else if (cinema == "Odeon") {
-                    val nowPlayingList = repository.fetchMovies("https://flix.gr/theatres/61")
-                    _nowPlayingMovies.value = nowPlayingList
-                    _comingSoonMovies.value = emptyList()
-                    _movies.value = nowPlayingList
-                }
-                else {
-                    Log.w("MovieViewModel", "Unknown cinema: $cinema")
-                }
+                _nowPlayingMovies.value = nowPlayingList
+                _comingSoonMovies.value = comingSoonList
+                _movies.value= nowPlayingList + comingSoonList
+
             } catch (e: Exception) {
                 Log.e("MovieViewModel", "Error fetching movies for $cinema", e)
             } finally {
@@ -73,6 +85,7 @@ class MovieViewModel(initialCinema: String = "Odeon") : ViewModel() {
             }
         }
     }
+
 
     private fun updateCombinedMovies() {
         _movies.value = _nowPlayingMovies.value + _comingSoonMovies.value

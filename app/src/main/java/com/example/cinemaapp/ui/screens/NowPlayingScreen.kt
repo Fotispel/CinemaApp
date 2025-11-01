@@ -1,11 +1,11 @@
 package com.example.cinemaapp.ui.screens
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import com.example.cinemaapp.viewmodel.MovieViewModel
 import androidx.navigation.NavController
 import com.example.cinemaapp.ui.MovieQuickViewItem
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,28 +39,34 @@ fun NowPlayingScreen(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            contentPadding = PaddingValues(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier
-                .nestedScroll(pullToRefreshState.nestedScrollConnection)
-                .fillMaxSize()
-        ) {
-            items(
-                nowPlayingMovies,
-                key = { movie -> movie.basicInfo.posterUrl.ifEmpty { movie.basicInfo.title } },
-                contentType = { _ -> "movie" }
-            ) { movie ->
-                MovieQuickViewItem(
-                    basicInfo = movie.basicInfo,
-                    navController = navController,
-                    onClick = { clickedMovie ->
-                        val encodedUrl = Uri.encode(clickedMovie.MovieURL)
-                        navController.navigate("movie_page/$encodedUrl")
-                    }
-                )
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center)
+            )
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                contentPadding = PaddingValues(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .nestedScroll(pullToRefreshState.nestedScrollConnection)
+                    .fillMaxSize()
+            ) {
+                items(
+                    nowPlayingMovies,
+                    key = { movie -> movie.basicInfo.posterUrl.ifEmpty { movie.basicInfo.title } },
+                    contentType = { _ -> "movie" }
+                ) { movie ->
+                    MovieQuickViewItem(
+                        basicInfo = movie.basicInfo,
+                        navController = navController,
+                        onClick = { clickedMovie ->
+                            val encodedUrl = Uri.encode(clickedMovie.MovieURL)
+                            navController.navigate("movie_page/$encodedUrl")
+                        }
+                    )
+                }
             }
         }
 
@@ -71,5 +76,3 @@ fun NowPlayingScreen(
         )
     }
 }
-
-

@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.example.cinemaapp.viewmodel.MovieViewModel
 import androidx.navigation.NavController
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -21,7 +22,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.example.cinemaapp.ui.MovieQuickViewItem
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,36 +44,46 @@ fun ComingSoonScreen(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        if (comingSoonMovies.isEmpty() && !isLoading) {
-            androidx.compose.material3.Text(
-                text = "No movies coming soon 🎬",
-                modifier = Modifier.align(Alignment.Center)
-            )
-        } else {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(3),
-                contentPadding = PaddingValues(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier
-                    .nestedScroll(pullToRefreshState.nestedScrollConnection)
-                    .fillMaxSize()
-            ) {
-                items(
-                    comingSoonMovies,
-                    key = { movie ->
-                        movie.basicInfo.posterUrl.ifEmpty { movie.basicInfo.title }
-                    },
-                    contentType = { _ -> "movie" }
-                ) { movie ->
-                    MovieQuickViewItem(
-                        basicInfo = movie.basicInfo,
-                        navController = navController,
-                        onClick = { clickedMovie ->
-                            val encodedUrl = Uri.encode(clickedMovie.MovieURL)
-                            navController.navigate("movie_page/$encodedUrl")
-                        }
-                    )
+        when {
+            isLoading -> {
+                // Εμφάνιση loading indicator όταν φορτώνει
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+
+            comingSoonMovies.isEmpty() -> {
+                androidx.compose.material3.Text(
+                    text = "No movies coming soon 🎬",
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+            else -> {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(3),
+                    contentPadding = PaddingValues(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .nestedScroll(pullToRefreshState.nestedScrollConnection)
+                        .fillMaxSize()
+                ) {
+                    items(
+                        comingSoonMovies,
+                        key = { movie ->
+                            movie.basicInfo.posterUrl.ifEmpty { movie.basicInfo.title }
+                        },
+                        contentType = { _ -> "movie" }
+                    ) { movie ->
+                        MovieQuickViewItem(
+                            basicInfo = movie.basicInfo,
+                            navController = navController,
+                            onClick = { clickedMovie ->
+                                val encodedUrl = Uri.encode(clickedMovie.MovieURL)
+                                navController.navigate("movie_page/$encodedUrl")
+                            }
+                        )
+                    }
                 }
             }
         }
