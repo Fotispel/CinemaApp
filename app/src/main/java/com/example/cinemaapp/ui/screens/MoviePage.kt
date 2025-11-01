@@ -166,7 +166,7 @@ fun MoviePage(movieUrl: String, navController: NavController, viewModel: MovieVi
                     ) {
                         Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                             AutoResizeText(
-                                text = movie?.fullInfo?.duration ?: "-",
+                                text = movie?.fullInfo?.duration?.replace(" λεπτά", "'") ?: "-",
                                 fontFamily = ubuntuMedium
                             )
                         }
