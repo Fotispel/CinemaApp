@@ -13,7 +13,7 @@ android {
         minSdk = 32
         targetSdk = 35
         versionCode = 1
-        versionName = "2.3.4"
+        versionName = "2.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -56,15 +56,15 @@ android {
 }
 
 dependencies {
-    implementation("com.google.accompanist:accompanist-navigation-animation:0.36.0")
-    implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
-    implementation("androidx.navigation:navigation-compose:2.9.5")
-    implementation("io.coil-kt:coil-compose:2.7.0")
-    implementation("org.jsoup:jsoup:1.21.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4")
+    implementation(libs.accompanist.navigation.animation)
+    implementation(libs.accompanist.systemuicontroller)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.coil.compose)
+    implementation(libs.jsoup.jsoup)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.androidx.lifecycle.runtime.ktx.v262)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
