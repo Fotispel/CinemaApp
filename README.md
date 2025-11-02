@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="screenshots/logo/logo_rounded.png" alt="CineCrete Logo" width="300"/>
+</p>
+
 # CineCrete
 
 CineCrete is an Android app built with Kotlin and Jetpack Compose that allows users to browse and explore movies currently playing in 3 cretan cinemas.
