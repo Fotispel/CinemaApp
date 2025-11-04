@@ -49,7 +49,3 @@ It shows info about the movies in clean and modern Material Design 3 interface.
 
 *Complete movie details with available showtimes*
 </div>
-
-*Complete movie details with available showtimes*
-
-</div>
